@@ -2,6 +2,24 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+# Tutor Schedule
+
+מערכת לניהול שיעורים (Next.js + Supabase).
+
+## התקנה והרצה
+
+````bash
+git clone https://github.com/<USER>/tutor-schedule.git
+cd tutor-schedule
+npm install
+npm run dev
+
+
+
+
+
+
+
 First, run the development server:
 
 ```bash
@@ -12,7 +30,7 @@ yarn dev
 pnpm dev
 # or
 bun dev
-```
+````
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
