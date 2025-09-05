@@ -8,15 +8,16 @@ type Props = {
   slot: Slot | null;
   onClose: () => void;
   onBooked: (slotId: string) => void;
+  tz: string; // <<< חדש: ה-Timezone שמגיע מההגדרות
 };
 
-function fmtTime(iso: string) {
+function fmtTime(iso: string, tz: string) {
   const d = new Date(iso);
-  return d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", timeZone: tz });
 }
-function fmtDate(iso: string) {
+function fmtDate(iso: string, tz: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString("he-IL", { year: "numeric", month: "2-digit", day: "2-digit" });
+  return d.toLocaleDateString("he-IL", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: tz });
 }
 
 function isValidEmail(s: string) {
@@ -24,11 +25,10 @@ function isValidEmail(s: string) {
 }
 function isValidPhone(s: string) {
   const t = s.replace(/\s|-/g, "");
-  return /^[0-9]{10}$/.test(t); // בדיוק 10 ספרות
+  return /^[0-9]{10}$/.test(t);
 }
 
-export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
-  // --- Hooks ALWAYS first, no early return before them ---
+export default function BookingModal({ open, slot, onClose, onBooked, tz }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -45,7 +45,6 @@ export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
     setSubmitting(false);
   }, []);
 
-  // איפוס כשנפתח מודל או כשעוברים לחלון זמן אחר
   useEffect(() => {
     if (open) resetForm();
   }, [open, slot?.id, resetForm]);
@@ -64,8 +63,7 @@ export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
     if (!isValidPhone(phone.trim())) return setErr("מספר פלאפון לא תקין (10 ספרות)");
     if (!email.trim()) return setErr("אימייל הוא שדה חובה");
     if (!isValidEmail(email.trim())) return setErr("אימייל לא תקין");
-
-    if (!slot) return; // מגן
+    if (!slot) return;
 
     setSubmitting(true);
     try {
@@ -96,7 +94,6 @@ export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
     }
   }
 
-  // רק כאן מותר להחזיר null, אחרי שכל ה-Hooks הוגדרו
   if (!open || !slot) return null;
 
   return (
@@ -114,14 +111,15 @@ export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
         </div>
 
         <div className="mb-4 text-sm text-gray-600">
-          <div><b>תאריך:</b> {fmtDate(slot.startsAt)}</div>
-          <div><b>שעה:</b> {fmtTime(slot.startsAt)}–{fmtTime(slot.endsAt)}</div>
+          <div><b>תאריך:</b> {fmtDate(slot.startsAt, tz)}</div>
+          <div><b>שעה:</b> {fmtTime(slot.startsAt, tz)}–{fmtTime(slot.endsAt, tz)}</div>
         </div>
 
         <form onSubmit={submit} className="space-y-3">
-          <label className="block text-sm">
+          <label className="block text-sm" htmlFor="student_name">
             שם מלא*
             <input
+              id="student_name"
               className="mt-1 w-full rounded border px-3 py-2"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -129,9 +127,10 @@ export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
             />
           </label>
 
-          <label className="block text-sm">
+          <label className="block text-sm" htmlFor="student_phone">
             מספר פלאפון*
             <input
+              id="student_phone"
               className="mt-1 w-full rounded border px-3 py-2"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -142,9 +141,10 @@ export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
             />
           </label>
 
-          <label className="block text-sm">
+          <label className="block text-sm" htmlFor="student_email">
             אימייל לאישור*
             <input
+              id="student_email"
               className="mt-1 w-full rounded border px-3 py-2"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -154,9 +154,10 @@ export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
             />
           </label>
 
-          <label className="block text-sm">
+          <label className="block text-sm" htmlFor="student_note">
             הערה (אופציונלי)
             <textarea
+              id="student_note"
               className="mt-1 w-full rounded border px-3 py-2"
               rows={3}
               value={note}

@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import Link from "next/link";
 
 type AdminSlot = {
   id: string;
   starts_at: string; // ISO
   ends_at: string;   // ISO
   is_booked: boolean;
+};
+
+type AppSettings = {
+  hours_from: number; // 0..23
+  hours_to: number;   // 1..24 (מציגים [from,to))
+  tz: string;         // לדוגמה 'Asia/Jerusalem'
 };
 
 const dayLabels = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
@@ -22,7 +29,6 @@ function startOfWeekLocal(d = new Date()) {
 }
 
 function toYMD(d: Date) {
-  // ייצוא כ־YYYY-MM-DD בשעון מקומי (בלי זליגת אזור־זמן)
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
     .toISOString()
     .slice(0, 10);
@@ -41,15 +47,6 @@ function fmtDateShort(d: Date) {
   return `${dd}.${mm}`;
 }
 
-function fmtTime(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleTimeString("he-IL", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Asia/Jerusalem",
-  });
-}
-
 function minutesOfDay(d: Date) {
   return d.getHours() * 60 + d.getMinutes();
 }
@@ -60,10 +57,10 @@ function dateOfWeekDay(weekStart: Date, dow: number) {
   return d;
 }
 
-/** שורות קבועות: 07:00..20:00 התחלה (כל שעה) */
-function hourlyRows_7_to_21(): number[] {
+/** יוצר שורות כל שעה עגולה לפי טווח [from, to) */
+function hourlyRows(from: number, to: number): number[] {
   const rows: number[] = [];
-  for (let h = 7; h < 21; h++) rows.push(h * 60);
+  for (let h = from; h < to; h++) rows.push(h * 60);
   return rows;
 }
 
@@ -75,6 +72,36 @@ export default function AdminHome() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState("");
+
+  // NEW: הגדרות מערכת
+  const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+
+  // טעינת הגדרות פעם אחת (או בכל כניסה לדף)
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      try {
+        setLoadingSettings(true);
+        const r = await fetch("/api/settings", { cache: "no-store" });
+        const j = await r.json();
+        if (!ignore && j?.ok && j.data) {
+          setSettings({
+            hours_from: j.data.hours_from ?? 7,
+            hours_to: j.data.hours_to ?? 20,
+            tz: j.data.tz ?? "Asia/Jerusalem",
+          });
+        } else if (!ignore) {
+          setSettings({ hours_from: 7, hours_to: 20, tz: "Asia/Jerusalem" });
+        }
+      } catch {
+        if (!ignore) setSettings({ hours_from: 7, hours_to: 20, tz: "Asia/Jerusalem" });
+      } finally {
+        if (!ignore) setLoadingSettings(false);
+      }
+    })();
+    return () => { ignore = true; };
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -108,7 +135,12 @@ export default function AdminHome() {
     return m;
   }, [slots]);
 
-  const rowStarts = useMemo(() => hourlyRows_7_to_21(), []);
+  // NEW: שורות לפי ההגדרות (נפילה ל-7..20 אם אין)
+  const rowStarts = useMemo(() => {
+    const from = settings?.hours_from ?? 7;
+    const to = settings?.hours_to ?? 20;
+    return hourlyRows(from, to);
+  }, [settings]);
 
   function prevWeek() { const x = new Date(weekStart); x.setDate(x.getDate() - 7); setWeekStart(x); }
   function nextWeek() { const x = new Date(weekStart); x.setDate(x.getDate() + 7); setWeekStart(x); }
@@ -117,9 +149,20 @@ export default function AdminHome() {
   const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 6);
   const headerRange = `${fmtDateFull(weekStart)} – ${fmtDateFull(weekEnd)}`;
 
+  // פונקציה לתצוגת שעה לפי ה-TZ שבהגדרות
+  const timeZone = settings?.tz ?? "Asia/Jerusalem";
+  const fmtTimeTZ = useCallback(
+    (iso: string) =>
+      new Date(iso).toLocaleTimeString("he-IL", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone,
+      }),
+    [timeZone]
+  );
+
   /* ── פעולות ───────────────── */
 
-  /** Toggle לתא בודד */
   async function toggle(slot: AdminSlot) {
     const url = slot.is_booked ? "/api/admin/release-slot" : "/api/admin/block-slot";
     const res = await fetch(url, {
@@ -138,7 +181,6 @@ export default function AdminHome() {
     setTimeout(() => setToast(""), 1200);
   }
 
-  /** חסימת כל המשבצות באותו יום (לפי תאריך מקומי YYYY-MM-DD) */
   async function blockDay(ymd: string, dow: number) {
     const res = await fetch("/api/admin/block-day", {
       method: "POST",
@@ -158,7 +200,6 @@ export default function AdminHome() {
     setTimeout(() => setToast(""), 1200);
   }
 
-  /** שחרור כל המשבצות באותו יום */
   async function releaseDay(ymd: string, dow: number) {
     const res = await fetch("/api/admin/release-day", {
       method: "POST",
@@ -180,19 +221,34 @@ export default function AdminHome() {
 
   /* ─────────────── UI ─────────────── */
 
+  const isLoading = loading || loadingSettings;
+
   return (
     <main className="mx-auto max-w-6xl p-6 space-y-6" dir="rtl">
       {/* כותרת ניווט שבועי */}
+      <div className="flex justify-end mb-4">
+  <Link
+    href="/admin/settings"
+    className="rounded border px-4 py-2 hover:bg-gray-50"
+  >
+     הגדרת שעות←
+  </Link>
+</div>
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border bg-white p-3 shadow-sm">
         <button onClick={prevWeek} className="rounded border px-3 py-2 hover:bg-gray-50">‹ שבוע קודם</button>
         <button onClick={goToday} className="rounded border px-3 py-2 hover:bg-gray-50">לשבוע הנוכחי</button>
         <button onClick={nextWeek} className="rounded border px-3 py-2 hover:bg-gray-50">שבוע הבא ›</button>
         <div className="mx-3 text-sm text-gray-500">|</div>
         <div className="font-medium">שבוע: <span className="tabular-nums">{headerRange}</span></div>
+        {settings && (
+          <div className="ml-auto text-xs text-gray-500">
+            טווח תצוגה: {settings.hours_from}:00–{settings.hours_to}:00 · TZ: {settings.tz}
+          </div>
+        )}
       </div>
 
       {/* טבלת מערכת שעות */}
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-4 animate-pulse">
           <div className="h-12 rounded-2xl bg-gray-100" />
           <div className="h-[440px] rounded-2xl border bg-white p-4 shadow-sm" />
@@ -206,36 +262,35 @@ export default function AdminHome() {
       ) : (
         <div className="overflow-x-auto rounded-2xl border bg-white p-3 shadow-sm">
           <table className="min-w-[860px] w-full table-fixed border-collapse text-sm">
-<thead>
-  <tr className="text-right text-gray-700">
-    <th className="w-24 border-b p-2">שעה</th>
-    {Array.from({ length: 7 }).map((_, dow) => {
-      const d = dateOfWeekDay(weekStart, dow);
-      const ymd = toYMD(d);
-      return (
-        <th key={dow} className="border-b p-2 align-top">
-          <div className="font-medium text-gray-700">{dayLabels[dow]}</div>
-          <div className="text-xs text-gray-500 tabular-nums">{fmtDateShort(d)}</div>
-          {/* שורה נפרדת לכפתורים */}
-          <div className="mt-1 flex items-center justify-center gap-1">
-            <button
-              onClick={() => blockDay(ymd, dow)}
-              className="rounded bg-red-100 border border-red-200 text-red-800 text-[11px] px-2 py-0.5 hover:bg-red-200"
-            >
-              חסום
-            </button>
-            <button
-              onClick={() => releaseDay(ymd, dow)}
-              className="rounded bg-emerald-100 border border-emerald-200 text-emerald-800 text-[11px] px-2 py-0.5 hover:bg-emerald-200"
-            >
-              שחרר
-            </button>
-          </div>
-        </th>
-      );
-    })}
-  </tr>
-</thead>
+            <thead>
+              <tr className="text-right text-gray-700">
+                <th className="w-24 border-b p-2">שעה</th>
+                {Array.from({ length: 7 }).map((_, dow) => {
+                  const d = dateOfWeekDay(weekStart, dow);
+                  const ymd = toYMD(d);
+                  return (
+                    <th key={dow} className="border-b p-2 align-top">
+                      <div className="font-medium text-gray-700">{dayLabels[dow]}</div>
+                      <div className="text-xs text-gray-500 tabular-nums">{fmtDateShort(d)}</div>
+                      <div className="mt-1 flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => blockDay(ymd, dow)}
+                          className="rounded bg-red-100 border border-red-200 text-red-800 text-[11px] px-2 py-0.5 hover:bg-red-200"
+                        >
+                          חסום
+                        </button>
+                        <button
+                          onClick={() => releaseDay(ymd, dow)}
+                          className="rounded bg-emerald-100 border border-emerald-200 text-emerald-800 text-[11px] px-2 py-0.5 hover:bg-emerald-200"
+                        >
+                          שחרר
+                        </button>
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
 
             <tbody>
               {rowStarts.map((startMin) => {
@@ -258,11 +313,11 @@ export default function AdminHome() {
                                 ${slot.is_booked
                                   ? "bg-red-100 border-red-200 text-red-900 hover:bg-red-200"
                                   : "bg-emerald-100 border-emerald-200 text-emerald-900 hover:bg-emerald-200"}`}
-                              title={`${fmtTime(slot.starts_at)}–${fmtTime(slot.ends_at)}`}
+                              title={`${fmtTimeTZ(slot.starts_at)}–${fmtTimeTZ(slot.ends_at)}`}
                               aria-label={slot.is_booked ? "תפוס" : "פנוי"}
                             >
-                              {fmtTime(slot.starts_at)}–{fmtTime(slot.ends_at)}{" "}
-                              <span className="font-semibold">{slot.is_booked ? "תפוס" : "פנוי"}</span>
+                              {fmtTimeTZ(slot.starts_at)}–{fmtTimeTZ(slot.ends_at)}
+                              {/* שימי לב: אם השדה הוא ends_at (עם קו תחתון), השתמשי בו: fmtTimeTZ(slot.ends_at) */}
                             </button>
                           ) : (
                             <div className="h-9 rounded-lg border border-dashed border-gray-200" />
