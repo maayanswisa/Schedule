@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { Slot } from "@/app/types"; // אם אין types.ts, ראו הערה למטה
+import { useCallback, useEffect, useState } from "react";
+import type { Slot } from "@/app/types";
 
 type Props = {
   open: boolean;
@@ -19,31 +19,53 @@ function fmtDate(iso: string) {
   return d.toLocaleDateString("he-IL", { year: "numeric", month: "2-digit", day: "2-digit" });
 }
 
+function isValidEmail(s: string) {
+  return /.+@.+\..+/.test(s);
+}
+function isValidPhone(s: string) {
+  const t = s.replace(/\s|-/g, "");
+  return /^[0-9]{10}$/.test(t); // בדיוק 10 ספרות
+}
+
 export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
+  // --- Hooks ALWAYS first, no early return before them ---
   const [name, setName] = useState("");
-  const [email, setEmail] = useState(""); // אופציונלי
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // לא מציירים כלום אם לא פתוח או שאין משבצת
-  if (!open || !slot) return null;
+  const resetForm = useCallback(() => {
+    setName("");
+    setEmail("");
+    setPhone("");
+    setNote("");
+    setErr(null);
+    setSubmitting(false);
+  }, []);
 
-  // מוודא ל-TS שאין null
-  const s: Slot = slot;
+  // איפוס כשנפתח מודל או כשעוברים לחלון זמן אחר
+  useEffect(() => {
+    if (open) resetForm();
+  }, [open, slot?.id, resetForm]);
+
+  function handleClose() {
+    resetForm();
+    onClose();
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
 
-    if (!name.trim()) {
-      setErr("שם מלא הוא שדה חובה");
-      return;
-    }
-    if (email && !/.+@.+\..+/.test(email)) {
-      setErr("אימייל לא תקין");
-      return;
-    }
+    if (!name.trim()) return setErr("שם מלא הוא שדה חובה");
+    if (!phone.trim()) return setErr("מספר פלאפון הוא שדה חובה");
+    if (!isValidPhone(phone.trim())) return setErr("מספר פלאפון לא תקין (10 ספרות)");
+    if (!email.trim()) return setErr("אימייל הוא שדה חובה");
+    if (!isValidEmail(email.trim())) return setErr("אימייל לא תקין");
+
+    if (!slot) return; // מגן
 
     setSubmitting(true);
     try {
@@ -51,48 +73,54 @@ export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          slotId: s.id,
+          slotId: slot.id,
           studentName: name.trim(),
-          studentEmail: email.trim() || "",
+          studentEmail: email.trim(),
+          studentPhone: phone.trim(),
           note: note.trim() || "",
         }),
       });
       const json = await res.json();
       if (!json.ok) {
         setErr(json.error || "שגיאה בשליחה");
-        setSubmitting(false);
         return;
       }
-      onBooked(s.id);
+      const bookedId = slot.id;
+      resetForm();
+      onBooked(bookedId);
       onClose();
     } catch {
       setErr("שגיאת רשת");
+    } finally {
       setSubmitting(false);
     }
   }
 
+  // רק כאן מותר להחזיר null, אחרי שכל ה-Hooks הוגדרו
+  if (!open || !slot) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="w-full max-w-md rounded-2xl bg-white p-4 shadow-xl" dir="rtl">
+      <div
+        key={slot.id ?? "closed"}
+        className="w-full max-w-md rounded-2xl bg-white p-4 shadow-xl"
+        dir="rtl"
+      >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold">שיבוץ שיעור</h2>
-          <button onClick={onClose} className="rounded px-2 py-1 text-sm hover:bg-gray-100">
+          <button onClick={handleClose} className="rounded px-2 py-1 text-sm hover:bg-gray-100">
             סגור
           </button>
         </div>
 
         <div className="mb-4 text-sm text-gray-600">
-          <div>
-            <b>תאריך:</b> {fmtDate(s.startsAt)}
-          </div>
-          <div>
-            <b>שעה:</b> {fmtTime(s.startsAt)}–{fmtTime(s.endsAt)}
-          </div>
+          <div><b>תאריך:</b> {fmtDate(slot.startsAt)}</div>
+          <div><b>שעה:</b> {fmtTime(slot.startsAt)}–{fmtTime(slot.endsAt)}</div>
         </div>
 
         <form onSubmit={submit} className="space-y-3">
           <label className="block text-sm">
-               שם מלא*   
+            שם מלא*
             <input
               className="mt-1 w-full rounded border px-3 py-2"
               value={name}
@@ -102,32 +130,45 @@ export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
           </label>
 
           <label className="block text-sm">
-               אימייל לאישור*   
+            מספר פלאפון*
+            <input
+              className="mt-1 w-full rounded border px-3 py-2"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              dir="ltr"
+              inputMode="tel"
+              type="tel"
+              placeholder="0521234567"
+            />
+          </label>
+
+          <label className="block text-sm">
+            אימייל לאישור*
             <input
               className="mt-1 w-full rounded border px-3 py-2"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               dir="ltr"
-              placeholder="student@example.com"
               type="email"
+              placeholder="student@example.com"
             />
           </label>
 
           <label className="block text-sm">
-            הערה (לא חובה)
+            הערה (אופציונלי)
             <textarea
               className="mt-1 w-full rounded border px-3 py-2"
               rows={3}
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="כל דבר שכדאי לדעת לפני השיעור…"
+              placeholder="העדפות, נושאים לשיעור וכו׳"
             />
           </label>
 
           {err && <div className="text-sm text-red-600">{err}</div>}
 
           <div className="flex items-center justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="rounded border px-3 py-2">
+            <button type="button" onClick={handleClose} className="rounded border px-3 py-2">
               ביטול
             </button>
             <button
@@ -142,14 +183,3 @@ export default function BookingModal({ open, slot, onClose, onBooked }: Props) {
     </div>
   );
 }
-
-/**
- * אם אין לך "@/app/types" עם Slot, אפשר למחוק את שורת ה-import ולפתוח את הטיפוס המקומי:
- *
- * type Slot = {
- *   id: string;
- *   startsAt: string; // ISO UTC
- *   endsAt: string;   // ISO UTC
- *   isBooked: boolean;
- * };
- */
