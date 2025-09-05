@@ -5,9 +5,10 @@ import Link from "next/link";
 
 type AdminSlot = {
   id: string;
-  starts_at: string; // ISO
-  ends_at: string;   // ISO
+  starts_at: string;
+  ends_at: string;
   is_booked: boolean;
+  bookings: null | { student_name: string; student_email: string | null; note: string | null }[]; // NEW
 };
 
 type AppSettings = {
@@ -299,29 +300,45 @@ export default function AdminHome() {
                 return (
                   <tr key={startMin} className="border-t">
                     {/* עמודת השעה */}
-                    <td className="p-2 text-center tabular-nums text-gray-600">{hh}:{mm}</td>
+                    <td className="p-2 text-center tabular-nums text-gray-600 align-middle h-12">
+  {hh}:{mm}
+</td>
 
                     {/* תאי הימים */}
                     {Array.from({ length: 7 }).map((_, dow) => {
                       const slot = matrix.get(dow)?.get(startMin) || null;
                       return (
                         <td key={dow} className="p-2 align-top">
-                          {slot ? (
-                            <button
-                              onClick={() => toggle(slot)}
-                              className={`block w-full rounded-lg border px-2 py-2 text-center tabular-nums transition
-                                ${slot.is_booked
-                                  ? "bg-red-100 border-red-200 text-red-900 hover:bg-red-200"
-                                  : "bg-emerald-100 border-emerald-200 text-emerald-900 hover:bg-emerald-200"}`}
-                              title={`${fmtTimeTZ(slot.starts_at)}–${fmtTimeTZ(slot.ends_at)}`}
-                              aria-label={slot.is_booked ? "תפוס" : "פנוי"}
-                            >
-                              {fmtTimeTZ(slot.starts_at)}–{fmtTimeTZ(slot.ends_at)}
-                              {/* שימי לב: אם השדה הוא ends_at (עם קו תחתון), השתמשי בו: fmtTimeTZ(slot.ends_at) */}
-                            </button>
-                          ) : (
-                            <div className="h-9 rounded-lg border border-dashed border-gray-200" />
-                          )}
+{slot ? (
+  <button
+    onClick={() => toggle(slot)}
+    className={`block w-full rounded-lg border px-2 py-3 text-center transition h-12
+      ${slot.is_booked
+        ? "bg-red-100 border-red-200 text-red-900 hover:bg-red-200"
+        : "bg-emerald-100 border-emerald-200 text-emerald-900 hover:bg-emerald-200"}`}
+    title={`${fmtTimeTZ(slot.starts_at)}–${fmtTimeTZ(slot.ends_at)}${
+      slot.is_booked
+        ? ` · ${slot.bookings?.[0]?.student_name || "(חסום)"}`
+        : ""
+    }`}
+    aria-label={slot.is_booked ? "תפוס" : "פנוי"}
+  >
+    {/* שורת השעות – בלי שבירת שורה */}
+    <div className="whitespace-nowrap leading-tight tabular-nums">
+      {fmtTimeTZ(slot.starts_at)}–{fmtTimeTZ(slot.ends_at)}
+    </div>
+
+    {/* אם תפוס – שם התלמיד/חסום בשורה קטנה מתחת */}
+    {slot.is_booked && (
+      <div className="text-[11px] leading-tight mt-0.5 opacity-90 truncate">
+        {slot.bookings?.[0]?.student_name || "(חסום)"}
+      </div>
+    )}
+  </button>
+) : (
+  <div className="h-12 rounded-lg border border-dashed border-gray-200" />
+)}
+
                         </td>
                       );
                     })}

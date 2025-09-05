@@ -54,12 +54,18 @@ export async function POST(request: Request) {
       p_note: note ?? null,
     });
 
-    if (error) {
-      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
-    }
-    if (!data) {
-      return NextResponse.json({ ok: false, error: "המשבצת כבר תפוסה" }, { status: 409 });
-    }
+if (error) {
+  // במקרה נדיר שחוזרת שגיאה אחרת
+  if ((error as any).code === "23505") {
+    return NextResponse.json({ ok: false, error: "המשבצת כבר תפוסה" }, { status: 409 });
+  }
+  return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+}
+
+if (!data) {
+  // הפונקציה החזירה false -> המשבצת כבר תפוסה
+  return NextResponse.json({ ok: false, error: "המשבצת כבר תפוסה" }, { status: 409 });
+}
 
     // שליחת מיילים (לא חוסם)
     sendBookingEmails({

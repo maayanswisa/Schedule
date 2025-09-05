@@ -10,6 +10,7 @@ type Slot = {
   startsAt: string; // ISO
   endsAt: string;   // ISO
   isBooked: boolean;
+  
 };
 
 type AppSettings = {
