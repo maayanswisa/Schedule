@@ -242,7 +242,7 @@ export default function AdminHome() {
         <div className="font-medium">שבוע: <span className="tabular-nums">{headerRange}</span></div>
         {settings && (
           <div className="ml-auto text-xs text-gray-500">
-            טווח תצוגה: {settings.hours_from}:00–{settings.hours_to}:00 · TZ: {settings.tz}
+            טווח תצוגה: {settings.hours_from}:00–{settings.hours_to}:00 
           </div>
         )}
       </div>

@@ -8,7 +8,7 @@ type Props = {
   slot: Slot | null;
   onClose: () => void;
   onBooked: (slotId: string) => void;
-  tz: string; // <<< חדש: ה-Timezone שמגיע מההגדרות
+  tz?: string; // היה חובה -> עכשיו אופציונלי
 };
 
 function fmtTime(iso: string, tz: string) {
@@ -28,7 +28,7 @@ function isValidPhone(s: string) {
   return /^[0-9]{10}$/.test(t);
 }
 
-export default function BookingModal({ open, slot, onClose, onBooked, tz }: Props) {
+export default function BookingModal({ open, slot, onClose, onBooked,  tz = "Asia/Jerusalem" }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");

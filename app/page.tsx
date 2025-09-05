@@ -235,7 +235,7 @@ export default function PublicSchedule() {
                 return (
                   <tr key={startMin} className="border-t">
                     {/* עמודת השעה */}
-                    <td className="p-2 text-center tabular-nums text-gray-600">{hh}:{mm}</td>
+                    <td className="p-2 text-center tabular-nums text-gray-600 align-middle h-12">{hh}:{mm}</td>
 
                     {/* תאי הימים */}
                     {Array.from({ length: 7 }).map((_, dow) => {
@@ -246,18 +246,24 @@ export default function PublicSchedule() {
                           {slot ? (
                             <button
                               disabled={!isFree}
-                              onClick={() => { if (isFree) { setSelected(slot); setModalOpen(true); } }}
+                              
+                              onClick={() => { if (isFree) { setSelected(slot) ; setModalOpen(true); } }}
+                              
                               className={`block w-full rounded-lg border px-2 py-2 text-center tabular-nums transition
                                 ${
                                   isFree
-                                    ? "bg-emerald-100 border-emerald-200 text-emerald-900 hover:bg-emerald-200"
+                                    ? "bg-emerald-100 border-emerald-200 text-emerald-900 hover:bg-emerald-200" 
                                     : "bg-red-100 border-red-200 text-red-900 cursor-not-allowed"
                                 }`}
+                                
                               title={`${fmtTimeTZ(slot.startsAt)}–${fmtTimeTZ(slot.endsAt)}`}
+                              
                               aria-label={isFree ? "פנוי" : "תפוס"}
+                              
                             >
                               {fmtTimeTZ(slot.startsAt)}–{fmtTimeTZ(slot.endsAt)}
-                              {!isFree && <span className="ml-1 text-[11px]">(תפוס)</span>}
+                              <br/>
+                              {!isFree && <span className="ml-1 text-[11px]">תפוס</span>}
                             </button>
                           ) : (
                             <div className="h-9 rounded-lg border border-dashed border-gray-200" />
