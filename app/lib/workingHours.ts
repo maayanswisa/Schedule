@@ -4,8 +4,8 @@ export const workingHours: Record<number, Array<{ start: string; end: string }>>
   2: [{ start: "14:00", end: "20:00" }], // Tuesday
   3: [{ start: "14:00", end: "20:00" }], // Wednesday
   4: [{ start: "14:00", end: "18:00" }], // Thursday
-  5: [],                // Friday
-  6: [],                // Saturday
+  5: [{ start: "14:00", end: "18:00" }],               // Friday
+  6: [{ start: "14:00", end: "18:00" }],               // Saturday
 };
 
 const MS = 60 * 1000;

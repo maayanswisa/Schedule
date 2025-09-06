@@ -25,7 +25,7 @@ export default function AdminLogin() {
 
   return (
     <main className="mx-auto max-w-sm p-6">
-      <h1 className="text-xl font-semibold mb-4">התחברות ניהול</h1>
+      <h1 className="text-xl font-semibold mb-4">התחברות מנהל</h1>
       <form onSubmit={onSubmit} className="space-y-3">
         <input
           type="password"
@@ -33,10 +33,10 @@ export default function AdminLogin() {
           placeholder="סיסמה"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          dir="ltr"
+          dir="rtl"
         />
         {err && <div className="text-red-600 text-sm">{err}</div>}
-        <button className="rounded bg-black text-white px-3 py-2">התחברי</button>
+        <button className="rounded bg-black text-white px-3 py-2">התחבר</button>
       </form>
     </main>
   );

@@ -9,7 +9,7 @@ const { searchParams } = new URL(req.url);
 const weekStartParam = searchParams.get("weekStart");
 const weeks = Number(searchParams.get("weeks") ?? 4);
 const lesson = Number(searchParams.get("lesson") ?? 60);
-const buffer = Number(searchParams.get("buffer") ?? 10);
+const buffer = Number(searchParams.get("buffer") ?? 0);
 
 
 const base = weekStartParam ? new Date(weekStartParam + "T00:00:00") : startOfWeek();

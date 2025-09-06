@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/app/lib/supabaseServer";
 import { generateSlotsForWeek, startOfWeek } from "@/app/lib/workingHours";
 
-async function runSeed(weekStartParam?: string | null, lesson = 60, buffer = 10) {
+async function runSeed(weekStartParam?: string | null, lesson = 60, buffer = 0) {
   const weekStart = weekStartParam
     ? new Date(weekStartParam + "T00:00:00")
     : startOfWeek();
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const weekStart = searchParams.get("weekStart");
     const lesson = Number(searchParams.get("lesson") ?? 60);
-    const buffer = Number(searchParams.get("buffer") ?? 10);
+    const buffer = Number(searchParams.get("buffer") ?? 0);
     const result = await runSeed(weekStart, lesson, buffer);
     return NextResponse.json(result);
   } catch (e: any) {
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const { searchParams } = new URL(request.url);
     const weekStart = searchParams.get("weekStart");
     const lesson = Number(searchParams.get("lesson") ?? 60);
-    const buffer = Number(searchParams.get("buffer") ?? 10);
+    const buffer = Number(searchParams.get("buffer") ?? 0);
     const result = await runSeed(weekStart, lesson, buffer);
     return NextResponse.json(result);
   } catch (e: any) {
