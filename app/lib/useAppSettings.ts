@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 
 export type AppSettings = {
@@ -8,29 +6,38 @@ export type AppSettings = {
   tz: string;
 };
 
+type ApiSettingsResponse =
+  | { ok: true; data: AppSettings }
+  | { ok: false; error?: string };
+
 export function useAppSettings() {
-  const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [data, setData] = useState<AppSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    let alive = true;
+    let cancel = false;
     (async () => {
       try {
-        // no-store כדי שתמיד נקבל את ההגדרות המעודכנות מאדמין
         const res = await fetch("/api/settings", { cache: "no-store" });
-        const json = await res.json();
-        if (!alive) return;
-        if (!json.ok || !json.data) throw new Error(json.error || "Failed to load settings");
-        setSettings(json.data);
-      } catch (e: any) {
-        setErr(e?.message || "שגיאה בטעינת הגדרות");
+        const json = (await res.json()) as ApiSettingsResponse;
+        if (!cancel) {
+          if (json.ok) {
+            setData(json.data);
+          } else {
+            setError(new Error(json.error ?? "Failed to load settings"));
+          }
+        }
+      } catch (e: unknown) {
+        if (!cancel) setError(e instanceof Error ? e : new Error("Failed to load settings"));
       } finally {
-        setLoading(false);
+        if (!cancel) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      cancel = true;
+    };
   }, []);
 
-  return { settings, loading, err };
+  return { data, loading, error };
 }

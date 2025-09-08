@@ -19,37 +19,56 @@ function sanitizeTz(tz?: unknown): string {
   return "Asia/Jerusalem";
 }
 
+type AppSettingsRow = {
+  hours_from: number;
+  hours_to: number;
+  tz: string;
+};
+
 export async function GET() {
   try {
     const { data, error } = await supabaseServer
       .from("app_settings")
       .select("hours_from, hours_to, tz")
       .eq("id", 1)
-      .single();
+      .single<AppSettingsRow>();
 
     if (error || !data) {
-      return NextResponse.json({ ok: false, error: error?.message || "Settings not found" }, { status: 500 });
+      return NextResponse.json(
+        { ok: false, error: error?.message || "Settings not found" },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ ok: true, data });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "Server error" }, { status: 500 });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Server error";
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const isAdmin = (await cookies()).get("admin")?.value === "true";
-    if (!isAdmin) return NextResponse.json({ ok: false, error: "לא מורשה" }, { status: 401 });
+    const cookieStore = await cookies();
+const isAdmin = cookieStore.get("admin")?.value === "true";
+    if (!isAdmin) {
+      return NextResponse.json({ ok: false, error: "לא מורשה" }, { status: 401 });
+    }
 
-    const body = await req.json();
+    const body = (await req.json()) as Partial<AppSettingsRow> | undefined;
+
     const hf = Number(body?.hours_from);
     const ht = Number(body?.hours_to);
     const tz = sanitizeTz(body?.tz);
 
     const valid =
-      Number.isInteger(hf) && Number.isInteger(ht) &&
-      hf >= 0 && hf <= 23 && ht >= 1 && ht <= 24 && hf < ht;
+      Number.isInteger(hf) &&
+      Number.isInteger(ht) &&
+      hf >= 0 &&
+      hf <= 23 &&
+      ht >= 1 &&
+      ht <= 24 &&
+      hf < ht;
 
     if (!valid) {
       return NextResponse.json({ ok: false, error: "טווח שעות לא תקין" }, { status: 400 });
@@ -62,13 +81,12 @@ export async function POST(req: Request) {
       .eq("id", 1);
 
     if (error) {
-      // כאן אפשר גם console.error(error) ללוג פנימי
       return NextResponse.json({ ok: false, error: "Server error" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ ok: false, error: "Server error" }, { status: 500 });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Server error";
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }
-

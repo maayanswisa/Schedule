@@ -7,26 +7,33 @@ type BookingBrief = {
   student_name: string;
   student_email: string | null;
   note: string | null;
-  created_at: string;
+  created_at: string; // ISO
 };
 
 type SlotRow = {
   id: string;
-  starts_at: string;
-  ends_at: string;
+  starts_at: string; // ISO
+  ends_at: string;   // ISO
   is_booked: boolean;
 };
+
+type SlotsResponse = {
+  ok: true;
+  weekStart: string;
+  slots: Array<SlotRow & { bookings: Array<Pick<BookingBrief, "student_name" | "student_email" | "note">> }>;
+} | { ok: false; error: string };
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const weekStartParam = searchParams.get("weekStart");
+
   const weekStart = weekStartParam
-    ? new Date(weekStartParam + "T00:00:00Z")
+    ? new Date(`${weekStartParam}T00:00:00Z`)
     : startOfWeek();
   const weekEnd = new Date(weekStart);
   weekEnd.setUTCDate(weekEnd.getUTCDate() + 7);
 
-  // 1) מביאים את כל המשבצות בשבוע
+  // 1) כל המשבצות בשבוע
   const { data: slots, error: slotsErr } = await supabaseServer
     .from("slots")
     .select("id, starts_at, ends_at, is_booked")
@@ -35,23 +42,27 @@ export async function GET(request: Request) {
     .order("starts_at", { ascending: true });
 
   if (slotsErr) {
-    console.error("admin/slots slotsErr:", slotsErr);
-    return NextResponse.json({ ok: false, error: slotsErr.message }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: slotsErr.message } satisfies SlotsResponse,
+      { status: 500 }
+    );
   }
 
-  const slotList = (slots ?? []) as SlotRow[];
-  const slotIds = slotList.map(s => s.id);
+  const slotList: SlotRow[] = (slots ?? []) as SlotRow[];
+  const slotIds = slotList.map((s) => s.id);
 
-  // 2) אם אין משבצות – מחזירים ריק
+  // 2) אין משבצות – מחזירים ריק
   if (slotIds.length === 0) {
-    return NextResponse.json({
-      ok: true,
-      weekStart: weekStart.toISOString(),
-      slots: [],
-    });
+    return NextResponse.json(
+      {
+        ok: true,
+        weekStart: weekStart.toISOString(),
+        slots: [],
+      } satisfies SlotsResponse
+    );
   }
 
-  // 3) מביאים את כל ההזמנות של המשבצות האלו (מהחדש לישן)
+  // 3) כל ההזמנות של המשבצות (מהחדש לישן)
   const { data: bookings, error: bookingsErr } = await supabaseServer
     .from("bookings")
     .select("slot_id, student_name, student_email, note, created_at")
@@ -59,29 +70,43 @@ export async function GET(request: Request) {
     .order("created_at", { ascending: false });
 
   if (bookingsErr) {
-    console.error("admin/slots bookingsErr:", bookingsErr);
-    return NextResponse.json({ ok: false, error: bookingsErr.message }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: bookingsErr.message } satisfies SlotsResponse,
+      { status: 500 }
+    );
   }
 
-  const allBookings = (bookings ?? []) as BookingBrief[];
+  const allBookings: BookingBrief[] = (bookings ?? []) as BookingBrief[];
 
-  // 4) לוקחים לכל slot את ההזמנה האחרונה (הראשונה במיון יורד)
-  const latestBySlot: Record<string, { student_name: string; student_email: string | null; note: string | null }[]> = {};
+  // 4) לכל slot שומרים את ההזמנה האחרונה בלבד
+  const latestBySlot = new Map<
+    string,
+    Array<Pick<BookingBrief, "student_name" | "student_email" | "note">>
+  >();
+
   for (const b of allBookings) {
-    if (!latestBySlot[b.slot_id]) {
-      latestBySlot[b.slot_id] = [{ student_name: b.student_name, student_email: b.student_email, note: b.note }];
+    if (!latestBySlot.has(b.slot_id)) {
+      latestBySlot.set(b.slot_id, [
+        {
+          student_name: b.student_name,
+          student_email: b.student_email,
+          note: b.note,
+        },
+      ]);
     }
   }
 
-  // 5) מחברים ומחזירים בפורמט שה-UI מצפה לו
-  const result = slotList.map(s => ({
+  // 5) מאחדים לתוצאה שה־UI מצפה לה
+  const result = slotList.map((s) => ({
     ...s,
-    bookings: latestBySlot[s.id] ?? [], // אם אין – זה יגרום ל"(חסום)"
+    bookings: latestBySlot.get(s.id) ?? [],
   }));
 
-  return NextResponse.json({
-    ok: true,
-    weekStart: weekStart.toISOString(),
-    slots: result,
-  });
+  return NextResponse.json(
+    {
+      ok: true,
+      weekStart: weekStart.toISOString(),
+      slots: result,
+    } satisfies SlotsResponse
+  );
 }

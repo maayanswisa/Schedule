@@ -1,52 +1,54 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/app/lib/supabaseServer";
-import { generateSlotsForWeek, startOfWeek } from "@/app/lib/workingHours";
+import { generateSlotsForWeek } from "@/app/lib/workingHours";
 
-async function runSeed(weekStartParam?: string | null, lesson = 60, buffer = 0) {
-  const weekStart = weekStartParam
-    ? new Date(weekStartParam + "T00:00:00")
-    : startOfWeek();
+type SeedOneWeekBody = {
+  weekStart: string; // YYYY-MM-DD
+  lesson?: number;   // דקות, ברירת מחדל 60
+  buffer?: number;   // דקות, ברירת מחדל 0
+};
 
-  const items = generateSlotsForWeek(weekStart, lesson, buffer);
+type SlotInsert = {
+  starts_at: string;
+  ends_at: string;
+  is_booked: boolean;
+};
 
-  const { error } = await supabaseServer.from("slots").upsert(
-    items.map((x) => ({
-      starts_at: x.starts_at,
-      ends_at: x.ends_at,
+export async function POST(req: Request) {
+  try {
+    const body = (await req.json()) as Partial<SeedOneWeekBody>;
+
+    const weekStart = body.weekStart;
+    const lesson = Number(body.lesson ?? 60);
+    const buffer = Number(body.buffer ?? 0);
+
+    if (!weekStart) {
+      return NextResponse.json({ ok: false, error: "weekStart נדרש" }, { status: 400 });
+    }
+    if (Number.isNaN(lesson) || lesson <= 0) {
+      return NextResponse.json({ ok: false, error: "lesson לא תקין" }, { status: 400 });
+    }
+    if (Number.isNaN(buffer) || buffer < 0) {
+      return NextResponse.json({ ok: false, error: "buffer לא תקין" }, { status: 400 });
+    }
+
+    const ws = new Date(`${weekStart}T00:00:00`);
+    const items: SlotInsert[] = generateSlotsForWeek(ws, lesson, buffer).map((x) => ({
+      ...x,
       is_booked: false,
-    })),
-    { onConflict: "starts_at,ends_at", ignoreDuplicates: true }
-  );
+    }));
 
-  if (error) throw new Error(error.message);
+    const { error } = await supabaseServer
+      .from("slots")
+      .upsert(items, { onConflict: "starts_at,ends_at", ignoreDuplicates: true });
 
-  return { ok: true, inserted: items.length, weekStart: weekStart.toISOString() };
-}
+    if (error) {
+      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    }
 
-// בדיקה נוחה בדפדפן: GET /api/dev/seed-week?weekStart=YYYY-MM-DD&lesson=60&buffer=10
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const weekStart = searchParams.get("weekStart");
-    const lesson = Number(searchParams.get("lesson") ?? 60);
-    const buffer = Number(searchParams.get("buffer") ?? 0);
-    const result = await runSeed(weekStart, lesson, buffer);
-    return NextResponse.json(result);
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "seed failed" }, { status: 500 });
-  }
-}
-
-// לשימוש מכפתור/POSTMAN: POST /api/dev/seed-week
-export async function POST(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const weekStart = searchParams.get("weekStart");
-    const lesson = Number(searchParams.get("lesson") ?? 60);
-    const buffer = Number(searchParams.get("buffer") ?? 0);
-    const result = await runSeed(weekStart, lesson, buffer);
-    return NextResponse.json(result);
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "seed failed" }, { status: 500 });
+    return NextResponse.json({ ok: true, inserted: items.length });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "seed failed";
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }

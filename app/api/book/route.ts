@@ -2,20 +2,39 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/app/lib/supabaseServer";
 import { sendBookingEmails } from "@/app/lib/mailer";
 
+/* ───────── Types ───────── */
+type BookBody = {
+  slotId: string;
+  studentName: string;
+  studentEmail: string;
+  studentPhone: string;
+  note?: string | null;
+};
+
+type SlotRow = {
+  starts_at: string;
+  ends_at: string;
+  is_booked: boolean;
+};
+
+type PgErrorLike = {
+  code?: string;     // לדוגמה "23505" על כפילות
+  message: string;
+};
+
+/* ───────── Validators ───────── */
 function isValidEmail(s: string) {
   return /.+@.+\..+/.test(s);
 }
 function isValidPhone(s: string) {
   const t = String(s || "").replace(/\s|-/g, "");
-  // כללי: ספרות/+, סוגריים, לפחות 6 תווים
   return /^[+()0-9]{6,}$/.test(t);
-  // לאומי (ישראל) מחמיר:
-  // return /^(?:\+972|0)5\d{8}$/.test(t.replace(/[()]/g, ""));
 }
 
+/* ───────── Handler ───────── */
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as Partial<BookBody>;
     const { slotId, studentName, studentEmail, studentPhone, note } = body ?? {};
 
     // שדות חובה
@@ -38,14 +57,13 @@ export async function POST(request: Request) {
       .from("slots")
       .select("starts_at, ends_at, is_booked")
       .eq("id", slotId)
-      .single();
+      .single<SlotRow>();
 
     if (slotErr || !slotRow) {
       return NextResponse.json({ ok: false, error: "משבצת לא נמצאה" }, { status: 404 });
     }
 
     // הזמנה אטומית בפונקציה (מונעת כפילות)
-    // נדרש ש-RPC book_slot יקבל גם p_student_phone וישמור אותו ב-bookings.student_phone
     const { data, error } = await supabaseServer.rpc("book_slot", {
       p_slot_id: slotId,
       p_student_name: studentName,
@@ -54,31 +72,33 @@ export async function POST(request: Request) {
       p_note: note ?? null,
     });
 
-if (error) {
-  // במקרה נדיר שחוזרת שגיאה אחרת
-  if ((error as any).code === "23505") {
-    return NextResponse.json({ ok: false, error: "המשבצת כבר תפוסה" }, { status: 409 });
-  }
-  return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
-}
+    if (error) {
+      const err = error as PgErrorLike;
+      if (err.code === "23505") {
+        // כפילות ייחודיות — המשבצת כבר נתפסה
+        return NextResponse.json({ ok: false, error: "המשבצת כבר תפוסה" }, { status: 409 });
+      }
+      return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
+    }
 
-if (!data) {
-  // הפונקציה החזירה false -> המשבצת כבר תפוסה
-  return NextResponse.json({ ok: false, error: "המשבצת כבר תפוסה" }, { status: 409 });
-}
+    if (!data) {
+      // book_slot החזירה false -> המשבצת כבר תפוסה
+      return NextResponse.json({ ok: false, error: "המשבצת כבר תפוסה" }, { status: 409 });
+    }
 
     // שליחת מיילים (לא חוסם)
     sendBookingEmails({
       studentName,
       studentEmail,
-      studentPhone,           // יופיע בעותק למנהלת
+      studentPhone,
       startsAtISO: slotRow.starts_at,
       endsAtISO: slotRow.ends_at,
-      note,
+      note: note ?? undefined,
     }).catch(() => {});
 
     return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ ok: false, error: "שגיאת שרת" }, { status: 500 });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "שגיאת שרת";
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }

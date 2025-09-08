@@ -1,13 +1,37 @@
 import { Resend } from "resend";
 
+/* ───────── Env ───────── */
 const apiKey = process.env.RESEND_API_KEY!;
 const FROM = process.env.MAIL_FROM!;        // למשל: 'Maayan Tutor <onboarding@resend.dev>'
 const OWNER = process.env.MAIL_TO_OWNER!;    // המייל שלך לקבלת העותק
 
+// אפשר לשקול בדיקה רכה במקום non-null assertion:
+if (!apiKey || !FROM || !OWNER) {
+  // עדיף לוג ברור בזמן ריצה מאשר קריסה שקטה
+  console.warn("Mailer env missing: RESEND_API_KEY/MAIL_FROM/MAIL_TO_OWNER");
+}
+
 const resend = new Resend(apiKey);
 
+/* ───────── Types ───────── */
+// המינימום המבני שחשוב לנו מתשובת Resend
+export type CreateEmailResponse = {
+  data: { id: string } | null;
+  error: { message: string } | null;
+};
+
+export type BookingMail = {
+  studentName: string;
+  studentEmail: string;      // חובה
+  studentPhone?: string;     // אופציונלי במיילר (אצלך חובה ב-API)
+  startsAtISO: string;
+  endsAtISO: string;
+  note?: string | null;
+};
+
+/* ───────── Utils ───────── */
 // פורמט זמן ידידותי בעברית, TZ ישראל
-function fmt(dtISO: string) {
+function fmt(dtISO: string): string {
   const d = new Date(dtISO);
   return new Intl.DateTimeFormat("he-IL", {
     dateStyle: "full",
@@ -17,7 +41,7 @@ function fmt(dtISO: string) {
 }
 
 // למניעת הזרקת HTML
-function escapeHtml(s?: string | null) {
+function escapeHtml(s?: string | null): string {
   if (!s) return "";
   return s
     .replaceAll("&", "&amp;")
@@ -27,7 +51,8 @@ function escapeHtml(s?: string | null) {
     .replaceAll("'", "&#039;");
 }
 
-export async function sendTestEmail(to?: string) {
+/* ───────── API ───────── */
+export async function sendTestEmail(to?: string): Promise<CreateEmailResponse> {
   const recipient = to ?? OWNER;
   const subject = "בדיקת מייל – אתר שיעורים";
   const html = `
@@ -36,25 +61,22 @@ export async function sendTestEmail(to?: string) {
       <p>זהו מייל בדיקה שנשלח דרך Resend מהשרת של Next.js.</p>
     </div>
   `;
-  return resend.emails.send({ from: FROM, to: recipient, subject, html });
+
+  // Resend מחזיר אובייקט עם { data, error }
+  const res = await resend.emails.send({ from: FROM, to: recipient, subject, html });
+  return {
+    data: (res as CreateEmailResponse).data ?? null,
+    error: (res as CreateEmailResponse).error ?? null,
+  };
 }
 
-export type BookingMail = {
-  studentName: string;
-  studentEmail: string;      // חובה (עודכן)
-  studentPhone?: string;     // אופציונלי במיילר (אצלך זה חובה ב-API)
-  startsAtISO: string;
-  endsAtISO: string;
-  note?: string | null;
-};
-
 // מייל אישור לתלמיד + עותק אלייך (בעותק אלייך מוצג גם מספר הטלפון)
-export async function sendBookingEmails(data: BookingMail) {
+export async function sendBookingEmails(data: BookingMail): Promise<void> {
   const { studentName, studentEmail, studentPhone, startsAtISO, endsAtISO, note } = data;
 
   const subject = `אישור שיעור – ${fmt(startsAtISO)}`;
 
-  // תוכן לתלמיד (לא מציגים את הפלאפון של עצמו – אפשרי להוסיף אם תרצי)
+  // תוכן לתלמיד
   const studentHtml = `
     <div dir="rtl" style="font-family:Arial,Helvetica,sans-serif; line-height:1.6">
       <h2 style="margin:0 0 12px">אישור שיעור</h2>
@@ -81,15 +103,23 @@ export async function sendBookingEmails(data: BookingMail) {
     </div>
   `;
 
-  const tasks: Promise<any>[] = [
-    resend.emails.send({ from: FROM, to: studentEmail, subject, html: studentHtml }),
-    resend.emails.send({ from: FROM, to: OWNER, subject: `📩 (עותק) ${subject}`, html: ownerHtml }),
+  const tasks: Array<Promise<CreateEmailResponse>> = [
+    resend.emails.send({ from: FROM, to: studentEmail, subject, html: studentHtml }) as Promise<CreateEmailResponse>,
+    resend.emails.send({ from: FROM, to: OWNER, subject: `📩 (עותק) ${subject}`, html: ownerHtml }) as Promise<CreateEmailResponse>,
   ];
 
   // לא מפילים את ה-API אם המייל נכשל
   try {
-    await Promise.allSettled(tasks);
-  } catch (e) {
+    const results = await Promise.allSettled(tasks);
+    // אם חשוב לך לוג על כשלון:
+    for (const r of results) {
+      if (r.status === "fulfilled" && r.value.error) {
+        console.warn("Email send reported error:", r.value.error.message);
+      } else if (r.status === "rejected") {
+        console.warn("Email send rejected:", r.reason);
+      }
+    }
+  } catch (e: unknown) {
     console.error("Email send failed", e);
   }
 }

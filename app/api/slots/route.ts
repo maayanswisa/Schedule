@@ -11,43 +11,75 @@ function startOfWeekLocal(d = new Date()) {
 }
 function toISODate(d: Date) {
   // ISO ללא זמן (YYYY-MM-DD) ואז נרכיב טווחי זמן
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 10);
 }
+
+/* ───────── Types ───────── */
+type SlotRow = {
+  id: string;
+  starts_at: string; // ISO
+  ends_at: string;   // ISO
+  is_booked: boolean;
+};
+
+type PublicSlot = {
+  id: string;
+  startsAt: string; // ISO
+  endsAt: string;   // ISO
+  isBooked: boolean;
+};
+
+type PublicSlotsResponse =
+  | { ok: true; data: PublicSlot[] }
+  | { ok: false; error: string };
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const weekStartStr = searchParams.get("weekStart"); // YYYY-MM-DD אופציונלי
-    const weekStart = weekStartStr ? new Date(weekStartStr + "T00:00:00") : startOfWeekLocal();
+    const weekStart = weekStartStr
+      ? new Date(`${weekStartStr}T00:00:00`)
+      : startOfWeekLocal();
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 7); // עד (בלעדי) שבוע קדימה
 
     // הופכים לטווחי ISO מלאים (UTC) כדי להשוות מול timestamptz
-    const fromIso = toISODate(weekStart) + "T00:00:00.000Z";
-    const toIso   = toISODate(weekEnd)   + "T00:00:00.000Z";
+    const fromIso = `${toISODate(weekStart)}T00:00:00.000Z`;
+    const toIso = `${toISODate(weekEnd)}T00:00:00.000Z`;
 
-    // ⚠️ שם הטבלה: לפי הקוד שלך השדות הם starts_at/ends_at/is_booked, נניח שהטבלה היא 'slots'
     const { data, error } = await supabaseServer
-      .from("slots")
-      .select("id, starts_at, ends_at, is_booked")
-      .gte("starts_at", fromIso)
-      .lt("starts_at", toIso)
-      .order("starts_at", { ascending: true });
+  .from("slots")
+  .select("id, starts_at, ends_at, is_booked")
+  .gte("starts_at", fromIso)
+  .lt("starts_at", toIso)
+  .order("starts_at", { ascending: true })
+  .returns<SlotRow[]>(); // ← כאן הטיפוס הנכון
 
-    if (error) {
-      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
-    }
+if (error) {
+  return NextResponse.json(
+    { ok: false, error: error.message } as const,
+    { status: 500 }
+  );
+}
 
-    // החזרה בפורמט שהדף הציבורי מצפה לו (camelCase)
-    const mapped = (data ?? []).map((s: any) => ({
-      id: s.id,
-      startsAt: s.starts_at,
-      endsAt: s.ends_at,
-      isBooked: !!s.is_booked,
-    }));
+const rows: SlotRow[] = data ?? [];
+const mapped: PublicSlot[] = rows.map((s) => ({
+  id: s.id,
+  startsAt: s.starts_at,
+  endsAt: s.ends_at,
+  isBooked: Boolean(s.is_booked),
+}));
 
-    return NextResponse.json({ ok: true, data: mapped });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { ok: true, data: mapped } satisfies PublicSlotsResponse
+    );
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Server error";
+    return NextResponse.json(
+      { ok: false, error: msg } satisfies PublicSlotsResponse,
+      { status: 500 }
+    );
   }
 }
