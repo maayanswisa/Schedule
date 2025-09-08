@@ -267,25 +267,25 @@ export default function AdminHome() {
                   const ymd = toYMD(d);
                   const isBlocked = dayBlockedMap.get(ymd) ?? false;
                   return (
-                    <th
-                      key={dow}
-                      className="w-[124px] sm:w-[148px] md:w-[160px] border-b p-1 sm:p-2 align-top sticky top-0 bg-white/90 backdrop-blur"
-                    >
-                      <div className="font-semibold text-gray-800 text-xs sm:text-sm">{dayLabels[dow]}</div>
-                      <div className="text-[10px] sm:text-xs text-gray-500 tabular-nums">{fmtDateShort(d)}</div>
-                      <div className="mt-1 flex items-center justify-center">
-                        <button
-                          onClick={() => (isBlocked ? releaseDay(ymd, dow) : blockDay(ymd, dow))}
-                          className={`rounded border px-2 py-0.5 text-[10px] sm:text-[11px] transition
-                            ${isBlocked
-                              ? "bg-emerald-100 border-emerald-200 text-emerald-800 hover:bg-emerald-200"
-                              : "bg-red-100 border-red-200 text-red-800 hover:bg-red-200"}`}
-                          title={isBlocked ? "שחרור כל היום" : "חסימת כל היום"}
-                        >
-                          {isBlocked ? "שחרר" : "חסום"}
-                        </button>
-                      </div>
-                    </th>
+<th
+  key={dow}
+  className="w-[85px] sm:w-[120px] md:w-[135px] border-b p-1 sm:p-2 align-top sticky top-0 bg-white/90 backdrop-blur"
+>
+  <div className="font-semibold text-gray-800 text-xs sm:text-sm">{dayLabels[dow]}</div>
+  <div className="text-[10px] sm:text-xs text-gray-500 tabular-nums">{fmtDateShort(d)}</div>
+  <div className="mt-1 flex items-center justify-center">
+    <button
+      onClick={() => (isBlocked ? releaseDay(ymd, dow) : blockDay(ymd, dow))}
+      className={`rounded border px-2 py-0.5 text-[10px] sm:text-[11px] transition
+        ${isBlocked
+          ? "bg-emerald-100 border-emerald-200 text-emerald-800 hover:bg-emerald-200"
+          : "bg-red-100 border-red-200 text-red-800 hover:bg-red-200"}`}
+    >
+      {isBlocked ? "שחרר" : "חסום"}
+    </button>
+  </div>
+</th>
+
                   );
                 })}
               </tr>
