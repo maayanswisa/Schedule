@@ -197,7 +197,7 @@ export default function PublicSchedule() {
 
           <div className="mx-3 hidden sm:block text-sm text-gray-300 select-none">|</div>
 
-          <div className="font-small text-gray-800">
+          <div className="font-medium text-gray-800">
             שבוע: <span className="tabular-nums">{headerRange}</span>
           </div>
 
