@@ -197,7 +197,7 @@ export default function PublicSchedule() {
 
           <div className="mx-3 hidden sm:block text-sm text-gray-300 select-none">|</div>
 
-          <div className="font-medium text-gray-800">
+          <div className="font-small text-gray-800">
             שבוע: <span className="tabular-nums">{headerRange}</span>
           </div>
 
@@ -230,7 +230,7 @@ export default function PublicSchedule() {
             <table className="w-full table-fixed border-collapse text-[11px] sm:text-sm">
               <thead>
                 <tr className="text-right text-gray-700">
-                  <th className="w-14 sm:w-24 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[10px] sm:text-xs">
+                  <th className="w-16 sm:w-24 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[9px] sm:text-xs">
                     שעה
                   </th>
                   {Array.from({ length: 7 }).map((_, dow) => {
@@ -238,7 +238,7 @@ export default function PublicSchedule() {
                     return (
                       <th
                         key={dow}
-                        className="border-b p-1 sm:p-2 align-top sticky top-0 bg-white/90 backdrop-blur"
+                        className="min-w-[40px] border-b p-1 sm:p-2 align-top sticky top-0 bg-white/90 backdrop-blur"
                       >
                         <div className="font-semibold text-gray-800 text-xs sm:text-sm">{dayLabels[dow]}</div>
                         <div className="text-[10px] sm:text-xs text-gray-500 tabular-nums">{fmtDateShort(d)}</div>
@@ -256,7 +256,7 @@ export default function PublicSchedule() {
                   return (
                     <tr key={startMin} className={`border-t ${stripe}`}>
                       {/* עמודת השעה */}
-                      <td className="p-1 sm:p-2 text-center tabular-nums text-gray-600 align-middle h-10 sm:h-12 text-[10px] sm:text-sm">
+                      <td className="p-1 sm:p-2 text-center tabular-nums text-gray-600 align-middle h-10 sm:h-12 text-[9px] sm:text-sm whitespace-nowrap">
                         {hh}:{mm}
                       </td>
 
@@ -274,16 +274,16 @@ export default function PublicSchedule() {
                                 title={`${fmtTimeTZ(slot.startsAt)}–${fmtTimeTZ(slot.endsAt)}`}
                                 aria-label={isFree ? "פנוי" : "תפוס"}
                                 className={`relative block w-full rounded-xl border text-center tabular-nums transition shadow-sm h-10 sm:h-12
-                                  flex items-center justify-center px-2 sm:px-3 text-[11px] sm:text-sm
+                                  flex items-center justify-center px-1 sm:px-3 text-[10px] sm:text-sm whitespace-nowrap
                                   ${
                                     isFree
                                       ? "bg-emerald-100/90 border-emerald-200 text-emerald-900 hover:bg-emerald-200 hover:shadow"
                                       : "bg-red-100/90 border-red-200 text-red-900 cursor-not-allowed"
                                   }`}
                               >
-                                <span className="font-medium">
-                                  {fmtTimeTZ(slot.startsAt)}–{fmtTimeTZ(slot.endsAt)}
-                                </span>
+<span className="font-medium whitespace-normal sm:whitespace-nowrap text-[8px] sm:text-sm leading-tight text-center">
+  {fmtTimeTZ(slot.startsAt)}–{fmtTimeTZ(slot.endsAt)}
+</span>
 
                                 {!isFree && (
                                   <span className="absolute bottom-0.5 left-0.5 text-[9px] sm:text-[10px] text-red-600 bg-white/80 px-1 rounded">
