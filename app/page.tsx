@@ -286,12 +286,12 @@ export default function PublicSchedule() {
       {fmtTimeTZ(slot.startsAt)}–{fmtTimeTZ(slot.endsAt)}
     </span>
 
-    {/* באדג' בפינה – לא מפריע לשעה */}
-    {!isFree && (
-      <span className="absolute bottom-1 left-1 text-[10px] leading-none rounded-full bg-red-200/85 px-11 py-[2px] pointer-events-none">
-        תפוס
-      </span>
-    )}
+
+{!isFree && (
+  <span className="absolute bottom-1 left-1 text-[9px] text-red-600 bg-white/70 px-1 rounded">
+    תפוס⛔
+  </span>
+)}
   </button>
 ) : (
   <div className="h-12 rounded-xl border border-dashed border-gray-200 hover:bg-gray-50/60 transition" />
