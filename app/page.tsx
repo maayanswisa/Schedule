@@ -161,37 +161,36 @@ export default function PublicSchedule() {
       className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50"
       dir="rtl"
     >
-      <div className="mx-auto max-w-6xl p-6 lg:p-8 space-y-6">
+      <div className="mx-auto max-w-6xl p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
         {/* כותרת */}
         <header className="flex flex-col gap-1">
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
             <span className="bg-gradient-to-r from-emerald-500 to-teal-800 bg-clip-text text-transparent">
               הזמן ללמוד הוא עכשיו – תפסו את המקום שלכם
             </span>
           </h1>
-          <p  className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-              
-              לומדים חכם – מצליחים מהר🎓
-            </p>
+          <p className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+            לומדים חכם – מצליחים מהר🎓
+          </p>
         </header>
 
         {/* ניווט שבועי */}
-        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-100/70 bg-white/90 p-3 shadow-sm backdrop-blur">
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-100/70 bg-white/90 p-2 sm:p-3 shadow-sm backdrop-blur">
           <button
             onClick={prevWeek}
-            className="rounded-xl border px-3 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm"
+            className="rounded-xl border px-2 py-1.5 sm:px-3 sm:py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm"
           >
             ‹ שבוע קודם
           </button>
           <button
             onClick={goToday}
-            className="rounded-xl border px-3 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm"
+            className="rounded-xl border px-2 py-1.5 sm:px-3 sm:py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm"
           >
             שבוע נוכחי
           </button>
           <button
             onClick={nextWeek}
-            className="rounded-xl border px-3 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm"
+            className="rounded-xl border px-2 py-1.5 sm:px-3 sm:py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm"
           >
             שבוע הבא ›
           </button>
@@ -227,11 +226,11 @@ export default function PublicSchedule() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl bg-white/95 shadow-lg ring-1 ring-black/5 p-3">
-            <table className="min-w-[860px] w-full table-fixed border-collapse text-sm">
+          <div className="rounded-2xl bg-white/95 shadow-lg ring-1 ring-black/5 p-2 sm:p-3">
+            <table className="w-full table-fixed border-collapse text-[11px] sm:text-sm">
               <thead>
                 <tr className="text-right text-gray-700">
-                  <th className="w-24 border-b p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600">
+                  <th className="w-14 sm:w-24 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[10px] sm:text-xs">
                     שעה
                   </th>
                   {Array.from({ length: 7 }).map((_, dow) => {
@@ -239,72 +238,69 @@ export default function PublicSchedule() {
                     return (
                       <th
                         key={dow}
-                        className="border-b p-2 align-top sticky top-0 bg-white/90 backdrop-blur"
+                        className="border-b p-1 sm:p-2 align-top sticky top-0 bg-white/90 backdrop-blur"
                       >
-                        <div className="font-semibold text-gray-800">{dayLabels[dow]}</div>
-                        <div className="text-xs text-gray-500 tabular-nums">{fmtDateShort(d)}</div>
+                        <div className="font-semibold text-gray-800 text-xs sm:text-sm">{dayLabels[dow]}</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500 tabular-nums">{fmtDateShort(d)}</div>
                       </th>
                     );
                   })}
                 </tr>
               </thead>
 
-<tbody>
-  {rowStarts.map((startMin, i) => {
-    const hh = String(Math.floor(startMin / 60)).padStart(2, "0");
-    const mm = String(startMin % 60).padStart(2, "0");
-    const stripe = i % 2 === 1 ? "bg-gray-50/40" : "";
-    return (
-      <tr key={startMin} className={`border-t ${stripe}`}>
-        {/* עמודת השעה */}
-        <td className="p-2 text-center tabular-nums text-gray-600 align-middle h-12">
-          {hh}:{mm}
-        </td>
+              <tbody>
+                {rowStarts.map((startMin, i) => {
+                  const hh = String(Math.floor(startMin / 60)).padStart(2, "0");
+                  const mm = String(startMin % 60).padStart(2, "0");
+                  const stripe = i % 2 === 1 ? "bg-gray-50/40" : "";
+                  return (
+                    <tr key={startMin} className={`border-t ${stripe}`}>
+                      {/* עמודת השעה */}
+                      <td className="p-1 sm:p-2 text-center tabular-nums text-gray-600 align-middle h-10 sm:h-12 text-[10px] sm:text-sm">
+                        {hh}:{mm}
+                      </td>
 
-        {/* תאי הימים */}
-        {Array.from({ length: 7 }).map((_, dow) => {
-          const slot = matrix.get(dow)?.get(startMin) || null;
-          const isFree = !!slot && !slot.isBooked;
+                      {/* תאי הימים */}
+                      {Array.from({ length: 7 }).map((_, dow) => {
+                        const slot = matrix.get(dow)?.get(startMin) || null;
+                        const isFree = !!slot && !slot.isBooked;
 
-          return (
-            <td key={dow} className="p-2 align-top">
-{slot ? (
-  <button
-    disabled={!isFree}
-    onClick={() => { if (isFree) { setSelected(slot); setModalOpen(true); } }}
-    title={`${fmtTimeTZ(slot.startsAt)}–${fmtTimeTZ(slot.endsAt)}`}
-    aria-label={isFree ? "פנוי" : "תפוס"}
-    className={`relative block w-full rounded-xl border text-center tabular-nums transition shadow-sm h-13
-      flex items-center justify-center px-3
-      ${
-        isFree
-          ? "bg-emerald-100/90 border-emerald-200 text-emerald-900 hover:bg-emerald-200 hover:shadow"
-          : "bg-red-100/90 border-red-200 text-red-900 cursor-not-allowed"
-      }`}
-  >
-    <span className="font-medium">
-      {fmtTimeTZ(slot.startsAt)}–{fmtTimeTZ(slot.endsAt)}
-    </span>
+                        return (
+                          <td key={dow} className="p-1 sm:p-2 align-top">
+                            {slot ? (
+                              <button
+                                disabled={!isFree}
+                                onClick={() => { if (isFree) { setSelected(slot); setModalOpen(true); } }}
+                                title={`${fmtTimeTZ(slot.startsAt)}–${fmtTimeTZ(slot.endsAt)}`}
+                                aria-label={isFree ? "פנוי" : "תפוס"}
+                                className={`relative block w-full rounded-xl border text-center tabular-nums transition shadow-sm h-10 sm:h-12
+                                  flex items-center justify-center px-2 sm:px-3 text-[11px] sm:text-sm
+                                  ${
+                                    isFree
+                                      ? "bg-emerald-100/90 border-emerald-200 text-emerald-900 hover:bg-emerald-200 hover:shadow"
+                                      : "bg-red-100/90 border-red-200 text-red-900 cursor-not-allowed"
+                                  }`}
+                              >
+                                <span className="font-medium">
+                                  {fmtTimeTZ(slot.startsAt)}–{fmtTimeTZ(slot.endsAt)}
+                                </span>
 
-
-{!isFree && (
-  <span className="absolute bottom-1 left-1 text-[9px] text-red-600 bg-white/70 px-1 rounded">
-    תפוס⛔
-  </span>
-)}
-  </button>
-) : (
-  <div className="h-12 rounded-xl border border-dashed border-gray-200 hover:bg-gray-50/60 transition" />
-)}
-
-            </td>
-          );
-        })}
-      </tr>
-    );
-  })}
-</tbody>
-
+                                {!isFree && (
+                                  <span className="absolute bottom-0.5 left-0.5 text-[9px] sm:text-[10px] text-red-600 bg-white/80 px-1 rounded">
+                                    ⛔
+                                  </span>
+                                )}
+                              </button>
+                            ) : (
+                              <div className="h-10 sm:h-12 rounded-xl border border-dashed border-gray-200 hover:bg-gray-50/60 transition" />
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
             </table>
 
             {rowStarts.length > 0 && slots.length === 0 && (
