@@ -166,7 +166,9 @@ export default function PublicSchedule() {
         <header className="flex flex-col gap-1">
           <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
             <span className="bg-gradient-to-r from-emerald-500 to-teal-800 bg-clip-text text-transparent">
-              הזמן ללמוד הוא עכשיו – תפסו את המקום שלכם
+              הזמן ללמוד הוא עכשיו – 
+              <br/>
+              תפסו את המקום שלכם
             </span>
           </h1>
           <p className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
@@ -286,9 +288,11 @@ export default function PublicSchedule() {
 </span>
 
                                 {!isFree && (
-                                  <span className="absolute bottom-0.5 left-0.5 text-[9px] sm:text-[10px] text-red-600 bg-white/80 px-1 rounded">
-                                    ⛔
-                                  </span>
+<span className="absolute bottom-0.5 left-0.5 text-[7px] sm:text-[10px] text-red-600 bg-white/80 px-0.5 sm:px-1 rounded">
+  ⛔
+</span>
+
+
                                 )}
                               </button>
                             ) : (
