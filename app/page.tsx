@@ -166,11 +166,13 @@ export default function PublicSchedule() {
         <header className="flex flex-col gap-1">
 <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
   <span className="bg-gradient-to-r from-emerald-500 to-teal-800 bg-clip-text text-transparent">
-       הזמן ללמוד הוא עכשיו –
-         <br className="block sm:hidden" />
-    – תפסו את המקום שלכם
+    הזמן ללמוד הוא עכשיו
+    <span className="hidden sm:inline">&nbsp;– </span>
+    <br className="block sm:hidden" />
+    תפסו את המקום שלכם
   </span>
 </h1>
+
 
           <p className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
             לומדים חכם – מצליחים מהר🎓
@@ -233,9 +235,11 @@ export default function PublicSchedule() {
             <table className="w-full table-fixed border-collapse text-[11px] sm:text-sm">
               <thead>
                 <tr className="text-right text-gray-700">
-                  <th className="w-16 sm:w-24 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[9px] sm:text-xs">
-                    שעה
-                  </th>
+                  
+                  <th className="w-12 sm:w-20 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[9px] sm:text-xs">
+  שעה
+</th>
+
                   {Array.from({ length: 7 }).map((_, dow) => {
                     const d = dateOfWeekDay(weekStart, dow);
                     return (
