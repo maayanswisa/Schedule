@@ -332,10 +332,10 @@ export default function AdminHome() {
                               }`}
                               aria-label={slot.is_booked ? "תפוס" : "פנוי"}
                             >
-                                                            {/* אם תפוס – שם התלמיד/חסום בשורה קטנה מתחת */}
+                                                           
                               {slot.is_booked && (
                                 <div className="text-[7px] sm:text-[15px] leading-tight mt-0.5 opacity-90 truncate">
-                                  {slot.bookings?.[0]?.student_name || "(חסום)"}
+                                  {slot.bookings?.[0]?.student_name || "חסום"}
                                 </div>
                               )}
                               {/* שעות – במובייל מותר לשבור, בדסקטופ לא */}
