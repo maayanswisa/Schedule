@@ -8,7 +8,7 @@ type AdminSlot = {
   starts_at: string;
   ends_at: string;
   is_booked: boolean;
-  bookings: null | { student_name: string; student_email: string | null; note: string | null }[]; // NEW
+  bookings: null | { student_name: string; student_email: string | null; note: string | null }[];
 };
 
 type AppSettings = {
@@ -19,7 +19,7 @@ type AppSettings = {
 
 const dayLabels = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
 
-/* ─────────────── Helpers ─────────────── */
+/* ───────── Helpers ───────── */
 
 function startOfWeekLocal(d = new Date()) {
   const x = new Date(d);
@@ -28,36 +28,30 @@ function startOfWeekLocal(d = new Date()) {
   x.setHours(0, 0, 0, 0);
   return x;
 }
-
 function toYMD(d: Date) {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
     .toISOString()
     .slice(0, 10);
 }
-
 function fmtDateFull(d: Date) {
   const dd = String(d.getDate()).padStart(2, "0");
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const yyyy = d.getFullYear();
   return `${dd}.${mm}.${yyyy}`;
 }
-
 function fmtDateShort(d: Date) {
   const dd = String(d.getDate()).padStart(2, "0");
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   return `${dd}.${mm}`;
 }
-
 function minutesOfDay(d: Date) {
   return d.getHours() * 60 + d.getMinutes();
 }
-
 function dateOfWeekDay(weekStart: Date, dow: number) {
   const d = new Date(weekStart);
   d.setDate(d.getDate() + dow);
   return d;
 }
-
 /** יוצר שורות כל שעה עגולה לפי טווח [from, to) */
 function hourlyRows(from: number, to: number): number[] {
   const rows: number[] = [];
@@ -65,7 +59,7 @@ function hourlyRows(from: number, to: number): number[] {
   return rows;
 }
 
-/* ─────────────── Component ─────────────── */
+/* ───────── Component ───────── */
 
 export default function AdminHome() {
   const [weekStart, setWeekStart] = useState(() => startOfWeekLocal());
@@ -74,11 +68,11 @@ export default function AdminHome() {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState("");
 
-  // NEW: הגדרות מערכת
+  // הגדרות מערכת
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
 
-  // טעינת הגדרות פעם אחת (או בכל כניסה לדף)
+  // טעינת הגדרות
   useEffect(() => {
     let ignore = false;
     (async () => {
@@ -136,7 +130,7 @@ export default function AdminHome() {
     return m;
   }, [slots]);
 
-  // NEW: שורות לפי ההגדרות (נפילה ל-7..20 אם אין)
+  // שורות לפי ההגדרות (נפילה ל-7..20 אם אין)
   const rowStarts = useMemo(() => {
     const from = settings?.hours_from ?? 7;
     const to = settings?.hours_to ?? 20;
@@ -150,7 +144,7 @@ export default function AdminHome() {
   const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 6);
   const headerRange = `${fmtDateFull(weekStart)} – ${fmtDateFull(weekEnd)}`;
 
-  // פונקציה לתצוגת שעה לפי ה-TZ שבהגדרות
+  // תצוגת שעה לפי ה-TZ שבהגדרות
   const timeZone = settings?.tz ?? "Asia/Jerusalem";
   const fmtTimeTZ = useCallback(
     (iso: string) =>
@@ -220,30 +214,31 @@ export default function AdminHome() {
     setTimeout(() => setToast(""), 1200);
   }
 
-  /* ─────────────── UI ─────────────── */
+  /* ───────── UI ───────── */
 
   const isLoading = loading || loadingSettings;
 
   return (
-    <main className="mx-auto max-w-6xl p-6 space-y-6" dir="rtl">
-      {/* כותרת ניווט שבועי */}
-      <div className="flex justify-end mb-4">
-  <Link
-    href="/admin/settings"
-    className="rounded border px-4 py-2 hover:bg-gray-50"
-  >
-     הגדרת שעות←
-  </Link>
-</div>
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border bg-white p-3 shadow-sm">
-        <button onClick={prevWeek} className="rounded border px-3 py-2 hover:bg-gray-50">‹ שבוע קודם</button>
-        <button onClick={goToday} className="rounded border px-3 py-2 hover:bg-gray-50">לשבוע הנוכחי</button>
-        <button onClick={nextWeek} className="rounded border px-3 py-2 hover:bg-gray-50">שבוע הבא ›</button>
-        <div className="mx-3 text-sm text-gray-500">|</div>
-        <div className="font-medium">שבוע: <span className="tabular-nums">{headerRange}</span></div>
+    <main className="mx-auto max-w-6xl p-3 sm:p-6 space-y-4 sm:space-y-6" dir="rtl">
+      {/* ניווט קצר ל־Settings */}
+      <div className="flex justify-end mb-2 sm:mb-4">
+        <Link href="/admin/settings" className="rounded border px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-gray-50">
+          הגדרת שעות ←
+        </Link>
+      </div>
+
+      {/* ניווט שבועי */}
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border bg-white p-2 sm:p-3 shadow-sm">
+        <button onClick={prevWeek} className="rounded border px-2 py-1.5 sm:px-3 sm:py-2 hover:bg-gray-50">‹ שבוע קודם</button>
+        <button onClick={goToday} className="rounded border px-2 py-1.5 sm:px-3 sm:py-2 hover:bg-gray-50">לשבוע הנוכחי</button>
+        <button onClick={nextWeek} className="rounded border px-2 py-1.5 sm:px-3 sm:py-2 hover:bg-gray-50">שבוע הבא ›</button>
+        <div className="mx-3 hidden sm:block text-sm text-gray-400 select-none">|</div>
+        <div className="font-medium">
+          שבוע: <span className="tabular-nums">{headerRange}</span>
+        </div>
         {settings && (
           <div className="ml-auto text-xs text-gray-500">
-            טווח תצוגה: {settings.hours_from}:00–{settings.hours_to}:00 
+            טווח תצוגה: {settings.hours_from}:00–{settings.hours_to}:00
           </div>
         )}
       </div>
@@ -261,28 +256,30 @@ export default function AdminHome() {
           <button onClick={load} className="rounded bg-black px-4 py-2 text-white hover:bg-gray-800">נסי שוב</button>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border bg-white p-3 shadow-sm">
-          <table className="min-w-[860px] w-full table-fixed border-collapse text-sm">
+        <div className="rounded-2xl bg-white shadow-lg ring-1 ring-black/5 p-2 sm:p-3">
+          <table className="w-full table-fixed border-collapse text-[11px] sm:text-sm">
             <thead>
               <tr className="text-right text-gray-700">
-                <th className="w-24 border-b p-2">שעה</th>
+                <th className="w-12 sm:w-20 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[9px] sm:text-xs">
+                  שעה
+                </th>
                 {Array.from({ length: 7 }).map((_, dow) => {
                   const d = dateOfWeekDay(weekStart, dow);
                   const ymd = toYMD(d);
                   return (
-                    <th key={dow} className="border-b p-2 align-top">
-                      <div className="font-medium text-gray-700">{dayLabels[dow]}</div>
-                      <div className="text-xs text-gray-500 tabular-nums">{fmtDateShort(d)}</div>
+                    <th key={dow} className="min-w-[40px] border-b p-1 sm:p-2 align-top sticky top-0 bg-white/90 backdrop-blur">
+                      <div className="font-semibold text-gray-800 text-xs sm:text-sm">{dayLabels[dow]}</div>
+                      <div className="text-[10px] sm:text-xs text-gray-500 tabular-nums">{fmtDateShort(d)}</div>
                       <div className="mt-1 flex items-center justify-center gap-1">
                         <button
                           onClick={() => blockDay(ymd, dow)}
-                          className="rounded bg-red-100 border border-red-200 text-red-800 text-[11px] px-2 py-0.5 hover:bg-red-200"
+                          className="rounded bg-red-100 border border-red-200 text-red-800 text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 hover:bg-red-200"
                         >
                           חסום
                         </button>
                         <button
                           onClick={() => releaseDay(ymd, dow)}
-                          className="rounded bg-emerald-100 border border-emerald-200 text-emerald-800 text-[11px] px-2 py-0.5 hover:bg-emerald-200"
+                          className="rounded bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 hover:bg-emerald-200"
                         >
                           שחרר
                         </button>
@@ -294,51 +291,50 @@ export default function AdminHome() {
             </thead>
 
             <tbody>
-              {rowStarts.map((startMin) => {
+              {rowStarts.map((startMin, i) => {
                 const hh = String(Math.floor(startMin / 60)).padStart(2, "0");
                 const mm = String(startMin % 60).padStart(2, "0");
+                const stripe = i % 2 === 1 ? "bg-gray-50/40" : "";
                 return (
-                  <tr key={startMin} className="border-t">
+                  <tr key={startMin} className={`border-t ${stripe}`}>
                     {/* עמודת השעה */}
-                    <td className="p-2 text-center tabular-nums text-gray-600 align-middle h-12">
-  {hh}:{mm}
-</td>
+                    <td className="p-1 sm:p-2 text-center tabular-nums text-gray-600 align-middle h-10 sm:h-12 text-[9px] sm:text-sm whitespace-nowrap">
+                      {hh}:{mm}
+                    </td>
 
                     {/* תאי הימים */}
                     {Array.from({ length: 7 }).map((_, dow) => {
                       const slot = matrix.get(dow)?.get(startMin) || null;
                       return (
-                        <td key={dow} className="p-2 align-top">
-{slot ? (
-  <button
-    onClick={() => toggle(slot)}
-    className={`block w-full rounded-lg border px-2 py-3 text-center transition h-12
-      ${slot.is_booked
-        ? "bg-red-100 border-red-200 text-red-900 hover:bg-red-200"
-        : "bg-emerald-100 border-emerald-200 text-emerald-900 hover:bg-emerald-200"}`}
-    title={`${fmtTimeTZ(slot.starts_at)}–${fmtTimeTZ(slot.ends_at)}${
-      slot.is_booked
-        ? ` · ${slot.bookings?.[0]?.student_name || "(חסום)"}`
-        : ""
-    }`}
-    aria-label={slot.is_booked ? "תפוס" : "פנוי"}
-  >
-    {/* שורת השעות – בלי שבירת שורה */}
-    <div className="whitespace-nowrap leading-tight tabular-nums">
-      {fmtTimeTZ(slot.starts_at)}–{fmtTimeTZ(slot.ends_at)}
-    </div>
+                        <td key={dow} className="p-1 sm:p-2 align-top">
+                          {slot ? (
+                            <button
+                              onClick={() => toggle(slot)}
+                              className={`relative block w-full rounded-xl border text-center transition h-10 sm:h-12
+                                px-2 sm:px-3
+                                ${slot.is_booked
+                                  ? "bg-red-100/90 border-red-200 text-red-900 hover:bg-red-200"
+                                  : "bg-emerald-100/90 border-emerald-200 text-emerald-900 hover:bg-emerald-200"}`}
+                              title={`${fmtTimeTZ(slot.starts_at)}–${fmtTimeTZ(slot.ends_at)}${
+                                slot.is_booked ? ` · ${slot.bookings?.[0]?.student_name || "(חסום)"}` : ""
+                              }`}
+                              aria-label={slot.is_booked ? "תפוס" : "פנוי"}
+                            >
+                              {/* שורת השעות – במובייל מותר לשבור שורה, בדסקטופ לא */}
+                              <div className="leading-tight tabular-nums whitespace-normal sm:whitespace-nowrap text-[10px] sm:text-sm text-center">
+                                {fmtTimeTZ(slot.starts_at)}–{fmtTimeTZ(slot.ends_at)}
+                              </div>
 
-    {/* אם תפוס – שם התלמיד/חסום בשורה קטנה מתחת */}
-    {slot.is_booked && (
-      <div className="text-[11px] leading-tight mt-0.5 opacity-90 truncate">
-        {slot.bookings?.[0]?.student_name || "(חסום)"}
-      </div>
-    )}
-  </button>
-) : (
-  <div className="h-12 rounded-lg border border-dashed border-gray-200" />
-)}
-
+                              {/* אם תפוס – שם התלמיד/חסום בשורה קטנה מתחת */}
+                              {slot.is_booked && (
+                                <div className="text-[10px] sm:text-[11px] leading-tight mt-0.5 opacity-90 truncate">
+                                  {slot.bookings?.[0]?.student_name || "(חסום)"}
+                                </div>
+                              )}
+                            </button>
+                          ) : (
+                            <div className="h-10 sm:h-12 rounded-xl border border-dashed border-gray-200" />
+                          )}
                         </td>
                       );
                     })}
