@@ -166,7 +166,7 @@ export default function PublicSchedule() {
         <header className="flex flex-col gap-1">
 <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
   <span className="bg-gradient-to-r from-emerald-500 to-teal-800 bg-clip-text text-transparent">
-    הזמן ללמוד הוא עכשיו – 
+    הזמן ללמוד הוא עכשיו  
     <span className="hidden sm:inline">&nbsp;– </span>
     <br className="block sm:hidden" />
     תפסו את המקום שלכם
