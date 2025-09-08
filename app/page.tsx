@@ -166,7 +166,7 @@ export default function PublicSchedule() {
         <header className="flex flex-col gap-1">
 <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
   <span className="bg-gradient-to-r from-emerald-500 to-teal-800 bg-clip-text text-transparent">
-    הזמן ללמוד הוא עכשיו
+    הזמן ללמוד הוא עכשיו – 
     <span className="hidden sm:inline">&nbsp;– </span>
     <br className="block sm:hidden" />
     תפסו את המקום שלכם
@@ -236,7 +236,7 @@ export default function PublicSchedule() {
               <thead>
                 <tr className="text-right text-gray-700">
                   
-                  <th className="w-12 sm:w-20 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[9px] sm:text-xs">
+                  <th className="w-9 sm:w-20 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[9px] sm:text-xs">
   שעה
 </th>
 
