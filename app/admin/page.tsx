@@ -269,7 +269,7 @@ export default function AdminHome() {
                   return (
 <th
   key={dow}
-  className="w-[70px] sm:w-[120px] md:w-[135px] border-b p-1 sm:p-2 align-top sticky top-0 bg-white/90 backdrop-blur"
+  className="w-[60px] sm:w-[120px] md:w-[135px] border-b p-1 sm:p-2 align-top sticky top-0 bg-white/90 backdrop-blur"
 >
   <div className="font-semibold text-gray-800 text-xs sm:text-sm">{dayLabels[dow]}</div>
   <div className="text-[10px] sm:text-xs text-gray-500 tabular-nums">{fmtDateShort(d)}</div>
