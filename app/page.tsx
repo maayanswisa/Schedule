@@ -236,7 +236,7 @@ export default function PublicSchedule() {
               <thead>
                 <tr className="text-right text-gray-700">
                   
-                  <th className="w-9 sm:w-20 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[9px] sm:text-xs">
+                  <th className="w-8 sm:w-20 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[9px] sm:text-xs">
   שעה
 </th>
 

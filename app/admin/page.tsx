@@ -332,17 +332,18 @@ export default function AdminHome() {
                               }`}
                               aria-label={slot.is_booked ? "תפוס" : "פנוי"}
                             >
-                              {/* שעות – במובייל מותר לשבור, בדסקטופ לא */}
-                              <div className="leading-tight tabular-nums whitespace-normal sm:whitespace-nowrap text-[9px] sm:text-sm text-center">
-                                {fmtTimeTZ(slot.starts_at)}–{fmtTimeTZ(slot.ends_at)}
-                              </div>
-
-                              {/* אם תפוס – שם התלמיד/חסום בשורה קטנה מתחת */}
+                                                            {/* אם תפוס – שם התלמיד/חסום בשורה קטנה מתחת */}
                               {slot.is_booked && (
-                                <div className="text-[10px] sm:text-[11px] leading-tight mt-0.5 opacity-90 truncate">
+                                <div className="text-[10px] sm:text-[15px] leading-tight mt-0.5 opacity-90 truncate">
                                   {slot.bookings?.[0]?.student_name || "(חסום)"}
                                 </div>
                               )}
+                              {/* שעות – במובייל מותר לשבור, בדסקטופ לא */}
+                              <div className="leading-tight tabular-nums whitespace-normal sm:whitespace-nowrap text-[7px] sm:text-sm text-center">
+                                {fmtTimeTZ(slot.starts_at)}
+                              </div>
+
+
                             </button>
                           ) : (
                             <div className="h-10 sm:h-12 rounded-xl border border-dashed border-gray-200" />
