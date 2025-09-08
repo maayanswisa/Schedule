@@ -164,13 +164,14 @@ export default function PublicSchedule() {
       <div className="mx-auto max-w-6xl p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
         {/* כותרת */}
         <header className="flex flex-col gap-1">
-          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
-            <span className="bg-gradient-to-r from-emerald-500 to-teal-800 bg-clip-text text-transparent">
-              הזמן ללמוד הוא עכשיו – 
-              <br/>
-              תפסו את המקום שלכם
-            </span>
-          </h1>
+<h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
+  <span className="bg-gradient-to-r from-emerald-500 to-teal-800 bg-clip-text text-transparent">
+       הזמן ללמוד הוא עכשיו –
+         <br className="block sm:hidden" />
+    – תפסו את המקום שלכם
+  </span>
+</h1>
+
           <p className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
             לומדים חכם – מצליחים מהר🎓
           </p>
@@ -288,7 +289,7 @@ export default function PublicSchedule() {
 </span>
 
                                 {!isFree && (
-<span className="absolute bottom-0.5 left-0.5 text-[7px] sm:text-[10px] text-red-600 bg-white/80 px-0.5 sm:px-1 rounded">
+<span className="absolute bottom-0.5 left-0.5 text-[6px] sm:text-[9px] text-red-600 bg-white/80 px-0.5 sm:px-1 rounded">
   ⛔
 </span>
 

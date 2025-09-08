@@ -28,7 +28,7 @@ function isValidPhone(s: string) {
   return /^[0-9]{10}$/.test(t);
 }
 
-export default function BookingModal({ open, slot, onClose, onBooked,  tz = "Asia/Jerusalem" }: Props) {
+export default function BookingModal({ open, slot, onClose, onBooked, tz = "Asia/Jerusalem" }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -97,14 +97,15 @@ export default function BookingModal({ open, slot, onClose, onBooked,  tz = "Asi
   if (!open || !slot) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-3 sm:p-0">
+      {/* במובייל: קטן יותר, עם מרווחים; בדסקטופ: כרגיל */}
       <div
         key={slot.id ?? "closed"}
-        className="w-full max-w-md rounded-2xl bg-white p-4 shadow-xl"
+        className="w-full max-w-[340px] sm:max-w-md rounded-2xl bg-white p-3 sm:p-4 shadow-xl max-h-[88vh] overflow-y-auto"
         dir="rtl"
       >
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">שיבוץ שיעור</h2>
+          <h2 className="text-base sm:text-lg font-semibold">שיבוץ שיעור</h2>
           <button onClick={handleClose} className="rounded px-2 py-1 text-sm hover:bg-gray-100">
             סגור
           </button>
