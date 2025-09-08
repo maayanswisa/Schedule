@@ -18,6 +18,8 @@ type AppSettings = {
 };
 
 const dayLabels = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
+const VISIBLE_DOWS = [0, 1, 2, 3, 4];
+
 
 /* ---- Helpers ---- */
 function startOfWeekLocal(d = new Date()) {
@@ -240,7 +242,7 @@ export default function PublicSchedule() {
   שעה
 </th>
 
-                  {Array.from({ length: 7 }).map((_, dow) => {
+                  {VISIBLE_DOWS.map((dow) => {
                     const d = dateOfWeekDay(weekStart, dow);
                     return (
                       <th
@@ -268,7 +270,7 @@ export default function PublicSchedule() {
                       </td>
 
                       {/* תאי הימים */}
-                      {Array.from({ length: 7 }).map((_, dow) => {
+                      {VISIBLE_DOWS.map((dow) => {
                         const slot = matrix.get(dow)?.get(startMin) || null;
                         const isFree = !!slot && !slot.isBooked;
 
