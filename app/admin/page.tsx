@@ -334,7 +334,7 @@ export default function AdminHome() {
                             >
                                                             {/* אם תפוס – שם התלמיד/חסום בשורה קטנה מתחת */}
                               {slot.is_booked && (
-                                <div className="text-[10px] sm:text-[15px] leading-tight mt-0.5 opacity-90 truncate">
+                                <div className="text-[7px] sm:text-[15px] leading-tight mt-0.5 opacity-90 truncate">
                                   {slot.bookings?.[0]?.student_name || "(חסום)"}
                                 </div>
                               )}
