@@ -137,6 +137,19 @@ export default function AdminHome() {
     return hourlyRows(from, to);
   }, [settings]);
 
+  // האם יום מסוים חסום כולו (כל המשבצות תפוסות)
+  const dayBlockedMap = useMemo(() => {
+    const m = new Map<string, boolean>();
+    for (let dow = 0; dow < 7; dow++) {
+      const d = dateOfWeekDay(weekStart, dow);
+      const ymd = toYMD(d);
+      const daySlots = slots.filter(s => toYMD(new Date(s.starts_at)) === ymd);
+      if (daySlots.length === 0) { m.set(ymd, false); continue; }
+      m.set(ymd, daySlots.every(s => s.is_booked === true));
+    }
+    return m;
+  }, [slots, weekStart]);
+
   function prevWeek() { const x = new Date(weekStart); x.setDate(x.getDate() - 7); setWeekStart(x); }
   function nextWeek() { const x = new Date(weekStart); x.setDate(x.getDate() + 7); setWeekStart(x); }
   function goToday() { setWeekStart(startOfWeekLocal(new Date())); }
@@ -260,28 +273,27 @@ export default function AdminHome() {
           <table className="w-full table-fixed border-collapse text-[11px] sm:text-sm">
             <thead>
               <tr className="text-right text-gray-700">
-                <th className="w-12 sm:w-20 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[9px] sm:text-xs">
+                <th className="w-11 sm:w-20 border-b p-1 sm:p-2 sticky top-0 bg-white/90 backdrop-blur text-gray-600 text-[9px] sm:text-xs">
                   שעה
                 </th>
                 {Array.from({ length: 7 }).map((_, dow) => {
                   const d = dateOfWeekDay(weekStart, dow);
                   const ymd = toYMD(d);
+                  const isBlocked = dayBlockedMap.get(ymd) ?? false;
                   return (
-                    <th key={dow} className="min-w-[40px] border-b p-1 sm:p-2 align-top sticky top-0 bg-white/90 backdrop-blur">
+                    <th key={dow} className="min-w-[48px] sm:min-w-[64px] border-b p-1 sm:p-2 align-top sticky top-0 bg-white/90 backdrop-blur">
                       <div className="font-semibold text-gray-800 text-xs sm:text-sm">{dayLabels[dow]}</div>
                       <div className="text-[10px] sm:text-xs text-gray-500 tabular-nums">{fmtDateShort(d)}</div>
-                      <div className="mt-1 flex items-center justify-center gap-1">
+                      <div className="mt-1 flex items-center justify-center">
                         <button
-                          onClick={() => blockDay(ymd, dow)}
-                          className="rounded bg-red-100 border border-red-200 text-red-800 text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 hover:bg-red-200"
+                          onClick={() => (isBlocked ? releaseDay(ymd, dow) : blockDay(ymd, dow))}
+                          className={`rounded border px-2 py-0.5 text-[10px] sm:text-[11px] transition
+                            ${isBlocked
+                              ? "bg-emerald-100 border-emerald-200 text-emerald-800 hover:bg-emerald-200"
+                              : "bg-red-100 border-red-200 text-red-800 hover:bg-red-200"}`}
+                          title={isBlocked ? "שחרור כל היום" : "חסימת כל היום"}
                         >
-                          חסום
-                        </button>
-                        <button
-                          onClick={() => releaseDay(ymd, dow)}
-                          className="rounded bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 hover:bg-emerald-200"
-                        >
-                          שחרר
+                          {isBlocked ? "שחרר" : "חסום"}
                         </button>
                       </div>
                     </th>
@@ -298,7 +310,7 @@ export default function AdminHome() {
                 return (
                   <tr key={startMin} className={`border-t ${stripe}`}>
                     {/* עמודת השעה */}
-                    <td className="p-1 sm:p-2 text-center tabular-nums text-gray-600 align-middle h-10 sm:h-12 text-[9px] sm:text-sm whitespace-nowrap">
+                    <td className="p-1 sm:p-2 text-center tabular-nums text-gray-600 align-middle h-10 sm:h-12 text-[8.5px] sm:text-xs whitespace-nowrap">
                       {hh}:{mm}
                     </td>
 
@@ -311,7 +323,7 @@ export default function AdminHome() {
                             <button
                               onClick={() => toggle(slot)}
                               className={`relative block w-full rounded-xl border text-center transition h-10 sm:h-12
-                                px-2 sm:px-3
+                                px-2.5 sm:px-3
                                 ${slot.is_booked
                                   ? "bg-red-100/90 border-red-200 text-red-900 hover:bg-red-200"
                                   : "bg-emerald-100/90 border-emerald-200 text-emerald-900 hover:bg-emerald-200"}`}
@@ -320,8 +332,8 @@ export default function AdminHome() {
                               }`}
                               aria-label={slot.is_booked ? "תפוס" : "פנוי"}
                             >
-                              {/* שורת השעות – במובייל מותר לשבור שורה, בדסקטופ לא */}
-                              <div className="leading-tight tabular-nums whitespace-normal sm:whitespace-nowrap text-[10px] sm:text-sm text-center">
+                              {/* שעות – במובייל מותר לשבור, בדסקטופ לא */}
+                              <div className="leading-tight tabular-nums whitespace-normal sm:whitespace-nowrap text-[9px] sm:text-sm text-center">
                                 {fmtTimeTZ(slot.starts_at)}–{fmtTimeTZ(slot.ends_at)}
                               </div>
 
