@@ -1,9 +1,10 @@
-🗓️ מערכת תיאום שיעורים – Maayan Tutor
+🗓️ **מערכת תיאום שיעורים – Maayan Tutor**
+https://schedule-tutor.vercel.app/
 
-פרויקט ווב מודרני שמאפשר ללקוחות לקבוע שיעורים אונליין בצורה פשוטה ונוחה.
+תיאום שיעורים אונליין בצורה פשוטה ונוחה.
 המורה מקבל ממשק ניהול מלא, והלקוחות יכולים לבחור מועד פנוי ולקבל אישור במייל.
 
-✨ פיצ’רים עיקריים
+✨ **פיצ’רים עיקריים**
 
 🔑 התחברות מנהל (Admin) – ממשק ניהול מאובטח להצגת כל השיעורים.
 
@@ -19,8 +20,7 @@
 
 🛠️ טכנולוגיות
 
-Frontend: Next.js 14
- + React + TypeScript
+Frontend: Next.js 14 + React + TypeScript
 
 Database & Auth: Supabase
 
@@ -79,6 +79,7 @@ npm run dev
 👩‍💻 מחברת הפרויקט
 
 פיתוח ועיצוב: Maayan Swisa
+
 📩 maayanswisa9@gmail.com
 
-🌐 Portfolio
+
