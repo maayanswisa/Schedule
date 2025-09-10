@@ -29,6 +29,10 @@ export type BookingMail = {
   note?: string | null;
 };
 
+
+function fmt(dtISO: string): string { const d = new Date(dtISO); return new Intl.DateTimeFormat("he-IL", { dateStyle: "full", timeStyle: "short", timeZone: "Asia/Jerusalem", }).format(d); }
+
+
 function fmtRangeShort(startsAtISO: string, endsAtISO: string): string {
   const s = new Date(startsAtISO);
   const e = new Date(endsAtISO);
@@ -126,6 +130,7 @@ export async function sendBookingEmails(data: BookingMail): Promise<void> {
       <p style="margin:0 0 8px"><b>אימייל:</b> ${escapeHtml(studentEmail)}</p>
       ${studentPhone ? `<p style="margin:0 0 8px"><b>מספר טלפון:</b> ${escapeHtml(studentPhone)}</p>` : ""}
       <p style="margin:0 0 8px">השיעור נקבע ל: <b>${escapeHtml(fmtRangeShort(startsAtISO, endsAtISO))}</b>.</p>
+
       ${note ? `<p style="margin:0 0 8px"><b>הערה:</b> ${escapeHtml(note)}</p>` : ""}
       <p style="margin-top:16px">לא ניתן לשנות/לבטל דרך המייל הזה. </p>
       <p style="margin-top:16px">כדי לשנות/לבטל - נא לשלוח הודעת ווטצאפ. 0526460735 </p>
