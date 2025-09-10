@@ -98,7 +98,8 @@ export async function sendBookingEmails(data: BookingMail): Promise<void> {
       ${studentPhone ? `<p style="margin:0 0 8px"><b>מספר טלפון:</b> ${escapeHtml(studentPhone)}</p>` : ""}
       <p style="margin:0 0 8px"><b>זמן:</b> ${escapeHtml(fmt(startsAtISO))} – ${escapeHtml(fmt(endsAtISO))}</p>
       ${note ? `<p style="margin:0 0 8px"><b>הערה:</b> ${escapeHtml(note)}</p>` : ""}
-      <p style="margin-top:16px">אם צריך לשנות/לבטל – פשוט להשיב למייל זה.</p>
+      <p style="margin-top:16px">לא ניתן לשנות/לבטל דרך המייל הזה. </p>
+      <p style="margin-top:16px">כדי לשנות/לבטל - נא לשלוח הודעת ווטצאפ. 0526460735 </p>
       <p style="margin:0; color:#666">נשלח אוטומטית מהאתר של מעיין</p>
     </div>
   `;
