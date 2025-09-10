@@ -29,16 +29,44 @@ export type BookingMail = {
   note?: string | null;
 };
 
-/* ───────── Utils ───────── */
-// פורמט זמן ידידותי בעברית, TZ ישראל
-function fmt(dtISO: string): string {
-  const d = new Date(dtISO);
-  return new Intl.DateTimeFormat("he-IL", {
-    dateStyle: "full",
-    timeStyle: "short",
-    timeZone: "Asia/Jerusalem",
-  }).format(d);
+function fmtRangeShort(startsAtISO: string, endsAtISO: string): string {
+  const s = new Date(startsAtISO);
+  const e = new Date(endsAtISO);
+
+  const tz = "Asia/Jerusalem";
+  const dateFmt: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: tz,
+  };
+  const timeFmt: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: tz,
+    hour12: false,
+  };
+
+  const sameDay =
+    s.getFullYear() === e.getFullYear() &&
+    s.getMonth() === e.getMonth() &&
+    s.getDate() === e.getDate();
+
+  const dateStr = new Intl.DateTimeFormat("he-IL", dateFmt).format(s);
+  const startTime = new Intl.DateTimeFormat("he-IL", timeFmt).format(s);
+  const endTime = new Intl.DateTimeFormat("he-IL", timeFmt).format(e);
+
+  if (sameDay) {
+    // דוגמה: יום ראשון, 14 בספטמבר 2025 17:00–18:00
+    return `${dateStr} ${startTime}–${endTime}`;
+  } else {
+    // אם חוצה תאריך: יום א', 14 בספט׳ 2025 23:30 – יום ב', 15 בספט׳ 2025 00:30
+    const endDateStr = new Intl.DateTimeFormat("he-IL", dateFmt).format(e);
+    return `${dateStr} ${startTime} – ${endDateStr} ${endTime}`;
+  }
 }
+
 
 // למניעת הזרקת HTML
 function escapeHtml(s?: string | null): string {
@@ -81,10 +109,11 @@ export async function sendBookingEmails(data: BookingMail): Promise<void> {
     <div dir="rtl" style="font-family:Arial,Helvetica,sans-serif; line-height:1.6">
       <h2 style="margin:0 0 12px">אישור שיעור</h2>
       <p style="margin:0 0 8px">היי ${escapeHtml(studentName)},</p>
-      <p style="margin:0 0 8px">השיעור נקבע ל: <b>${escapeHtml(fmt(startsAtISO))} – ${escapeHtml(fmt(endsAtISO))}</b>.</p>
+      <p style="margin:0 0 8px">השיעור נקבע ל: <b>${escapeHtml(fmtRangeShort(startsAtISO, endsAtISO))}</b>.</p>
       ${note ? `<p style="margin:0 0 8px">הערה: ${escapeHtml(note)}</p>` : ""}
       <hr style="margin:16px 0" />
-      <p style="margin:0 0 8px">אם צריך לשנות/לבטל – פשוט להשיב למייל זה.</p>
+      <p style="margin-top:16px">לא ניתן לשנות/לבטל דרך המייל הזה. </p>
+      <p style="margin-top:16px">כדי לשנות/לבטל - נא לשלוח הודעת ווטצאפ. 0526460735 </p>
       <p style="margin:0; color:#666">נשלח אוטומטית מהאתר של מעיין</p>
     </div>
   `;
@@ -96,7 +125,7 @@ export async function sendBookingEmails(data: BookingMail): Promise<void> {
       <p style="margin:0 0 8px"><b>שם תלמיד/ה:</b> ${escapeHtml(studentName)}</p>
       <p style="margin:0 0 8px"><b>אימייל:</b> ${escapeHtml(studentEmail)}</p>
       ${studentPhone ? `<p style="margin:0 0 8px"><b>מספר טלפון:</b> ${escapeHtml(studentPhone)}</p>` : ""}
-      <p style="margin:0 0 8px"><b>זמן:</b> ${escapeHtml(fmt(startsAtISO))} – ${escapeHtml(fmt(endsAtISO))}</p>
+      <p style="margin:0 0 8px">השיעור נקבע ל: <b>${escapeHtml(fmtRangeShort(startsAtISO, endsAtISO))}</b>.</p>
       ${note ? `<p style="margin:0 0 8px"><b>הערה:</b> ${escapeHtml(note)}</p>` : ""}
       <p style="margin-top:16px">לא ניתן לשנות/לבטל דרך המייל הזה. </p>
       <p style="margin-top:16px">כדי לשנות/לבטל - נא לשלוח הודעת ווטצאפ. 0526460735 </p>
