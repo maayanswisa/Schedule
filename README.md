@@ -1,54 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🗓️ מערכת תיאום שיעורים – Maayan Tutor
 
-## Getting Started
+פרויקט ווב מודרני שמאפשר ללקוחות לקבוע שיעורים אונליין בצורה פשוטה ונוחה.
+המורה מקבל ממשק ניהול מלא, והלקוחות יכולים לבחור מועד פנוי ולקבל אישור במייל.
 
-# Tutor Schedule
+✨ פיצ’רים עיקריים
 
-מערכת לניהול שיעורים (Next.js + Supabase).
+🔑 התחברות מנהל (Admin) – ממשק ניהול מאובטח להצגת כל השיעורים.
 
-## התקנה והרצה
+📅 מערכת שעות חכמה – מציגה שעות פנויות/תפוסות באופן ברור.
 
-````bash
-git clone https://github.com/<USER>/tutor-schedule.git
-cd tutor-schedule
+📨 התראות במייל – הלקוח מקבל אישור מידי, והמורה מקבל התראה.
+
+📱 רספונסיביות מלאה – מותאם למובייל ולדסקטופ.
+
+🗄️ בסיס נתונים בענן (Supabase) – ניהול כל המידע בצורה מאובטחת.
+
+🌍 פריסה ל־Vercel – האתר נגיש מכל מקום.
+
+🛠️ טכנולוגיות
+
+Frontend: Next.js 14
+ + React + TypeScript
+
+Database & Auth: Supabase
+
+Emails: Resend
+
+UI: TailwindCSS
+
+Deployment: Vercel
+
+🚀 התקנה והרצה מקומית
+
+שכפלו את הריפו:
+
+git clone https://github.com/username/schedule-tutor.git
+cd schedule-tutor
+
+
+התקינו חבילות:
+
 npm install
+
+
+צרו קובץ .env.local והכניסו את המשתנים:
+
+SUPABASE_URL=...
+SUPABASE_ANON_KEY=...
+RESEND_API_KEY=...
+MAIL_FROM=Your Name <you@yourdomain.com>
+
+
+הריצו:
+
 npm run dev
 
 
+האתר יהיה זמין ב־http://localhost:3000.
 
+🌐 פריסה ל־Vercel
 
+התחברו ל־Vercel עם GitHub.
 
+הוסיפו את כל משתני הסביבה ב־Settings → Environment Variables.
 
+לחצו Deploy.
 
-First, run the development server:
+האתר יעלה לכתובת אישית (לדוגמה: https://schedule-tutor.vercel.app).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-````
+📧 הגדרות מייל
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+לפרודקשן חייבים MAIL_FROM מדומיין מאומת ב־Resend.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+במידה ואין דומיין פרטי, ניתן להשתמש זמנית ב־onboarding@resend.dev.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+מומלץ להגדיר Forward כדי לקבל תשובות ישירות ל־Gmail.
 
-## Learn More
+👩‍💻 מחברת הפרויקט
 
-To learn more about Next.js, take a look at the following resources:
+פיתוח ועיצוב: Maayan Swisa
+📩 maayanswisa9@gmail.com
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+🌐 Portfolio
